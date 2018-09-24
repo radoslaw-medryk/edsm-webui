@@ -1,5 +1,6 @@
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+//const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
     entry: "./src/index.tsx",
@@ -16,16 +17,15 @@ module.exports = {
 
     module: {
         rules: [
-            { test: /\.tsx?$/, loader: "awesome-typescript-loader" },
+            { test: /\.tsx?$/, loader: "babel-loader" },
             { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
             { test: /.s?css$/, use: [
                 MiniCssExtractPlugin.loader,
-                { loader: "typings-for-css-modules-loader", options: {
+                { loader: "css-loader", options: {
                     modules: true,
                     localIdentName: "[name]-[hash:6]",
                     importLoaders: 1,
-                    camelCase: true,
-                    namedExport: true
+                    camelCase: true
                 }},
                 "sass-loader"
             ] }
@@ -44,6 +44,7 @@ module.exports = {
     },
 
     plugins: [
+        //new BundleAnalyzerPlugin(),
         new MiniCssExtractPlugin(),
         new HtmlWebpackPlugin({
             template: "src/index.html"

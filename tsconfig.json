@@ -10,7 +10,8 @@
         "lib": [
             "dom",
             "es5",
-            "es2015.promise"
+            "es2015.promise",
+            "es2015.core"
         ],
         "alwaysStrict": true,
         "forceConsistentCasingInFileNames": true,
@@ -28,7 +29,7 @@
         "src/**/*"
     ],
     "exclude": [
-        "node_modules",
-        "dist"
+        "node_modules/**/*",
+        "dist/**/*"
     ]
 }

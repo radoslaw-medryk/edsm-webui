@@ -1,5 +1,7 @@
+import { Hex } from "../types/Hex";
+
 export interface OperationData {
-    position: string;
-    opCode: number;
-    inCodeInput: string;
+    position: Hex;
+    opCode: Hex;
+    inCodeInput: Hex | null;
 }

@@ -1,4 +1,9 @@
-.assembly {
-    background: pink;
-    padding: 10px;
+.box {
+    position: relative;
+    height: 600px;
+    border: 2px dotted green;
+
+    .dragged {
+        opacity: 0.5;
+    }
 }

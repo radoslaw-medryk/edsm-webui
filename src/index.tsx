@@ -1,10 +1,10 @@
-import "es6-promise/auto";
+import "@babel/polyfill";
 
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import { ReactApp } from './components/ReactApp';
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import { ReactApp } from "./components/ReactApp";
 
 ReactDOM.render(
     <ReactApp/>,
-    document.getElementById('react-app')
+    document.getElementById("react-app")
 );

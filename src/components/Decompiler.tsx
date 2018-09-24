@@ -1,14 +1,25 @@
 import * as React from "react";
-import { AssemblyContainer } from "./AssemblyContainer";
+import { Axios, AxiosContext, AxiosStatus } from "@radoslaw-medryk/react-axios";
+import { Assembly } from "./Assembly";
+import { ResponseEnvelope } from "../contracts/ResponseEnvelope";
+import { AssemblyData } from "../contracts/AssemblyData";
 
-export interface Props {
+type ResponseData = ResponseEnvelope<AssemblyData>;
+
+type ErrorData = {
     //
-}
+};
 
-interface State {
+type TypedAxiosContext = AxiosContext<ResponseData, ErrorData>;
+
+export type Props = {
+    //
+};
+
+type State = {
     text: string;
     code: string | null;
-}
+};
 
 export class Decompiler extends React.Component<Props, State> {
     constructor(props: Props) {
@@ -16,36 +27,75 @@ export class Decompiler extends React.Component<Props, State> {
 
         this.state = {
             text: "",
-            code: null
+            code: null,
         };
     }
 
-    render() {
+    public render() {
         return (
-            <div>
-                <form onSubmit={this.onSubmitted.bind(this)}>
-                    <textarea onChange={this.onTextChanged.bind(this)}/>
-                    <input type="submit" value="Decompile"/>
-                </form>
-
-                { this.state.code
-                    ? <AssemblyContainer code={this.state.code}/>
-                    : null }
-            </div>
+            <Axios
+                request={axios => axios.post("http://localhost:5000/api/DebugAnalyse", { code: this.state.code })}
+                initCall={false}
+            >
+                {context => <>
+                    {this.renderForm(context)}
+                    {this.renderContent(context)}
+                </>}
+            </Axios>
         );
     }
 
-    private onTextChanged(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    private renderForm = (context: TypedAxiosContext) => {
+        const isDisabled = context.status === AxiosStatus.Loading;
+
+        return (
+            <form onSubmit={e => this.onSubmitted(e, context)}>
+                <textarea onChange={this.onTextChanged} value={this.state.text}/>
+                <input type="submit" disabled={isDisabled} value="Decompile"/>
+            </form>
+        );
+    }
+
+    private renderContent = (context: TypedAxiosContext) => {
+        switch (context.status) {
+            case AxiosStatus.NotCalled:
+                return this.renderNotCalled();
+            case AxiosStatus.Loading:
+                return this.renderLoading();
+            case AxiosStatus.Success:
+                return this.renderSuccess(context.data.data);
+            case AxiosStatus.Error:
+                return this.renderError(context.error);
+        }
+    }
+
+    private renderNotCalled = () => {
+        return <div>Ready.</div>;
+    }
+
+    private renderLoading = () => {
+        return <div>Loading...</div>;
+    }
+
+    private renderSuccess = (data: ResponseData) => {
+        return <Assembly data={data.value}/>;
+    }
+
+    private renderError = (error: ErrorData) => {
+        return <div>Error! `{JSON.stringify(error)}`.</div>;
+    }
+
+    private onTextChanged = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         this.setState({
-            text: event.currentTarget.value
+            text: event.currentTarget.value,
         });
     }
 
-    private onSubmitted(event: React.SyntheticEvent) {
+    private onSubmitted = (event: React.SyntheticEvent, context: TypedAxiosContext) => {
         event.preventDefault();
-        
+
         this.setState({
-            code: this.state.text
-        });
+            code: this.state.text,
+        }, context.call);
     }
 }

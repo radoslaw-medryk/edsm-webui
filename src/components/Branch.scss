@@ -1,0 +1,29 @@
+.box {
+    display: inline-block;
+    position: absolute;
+
+    .header {
+        padding: 5px;
+        border: 1px solid black;
+        background: lightblue;
+    }
+
+    .operations {
+        padding: 5px;
+        border: 1px solid black;
+        border-top: 0;
+        background: white;
+    }
+
+    &.inaccessible {
+        .header {
+            background: lightgray;
+            border: 1px solid gray;
+        }
+
+        .operations {
+            border: 1px solid gray;
+            border-top: 0;
+        }
+    }
+}

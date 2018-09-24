@@ -1,0 +1,14 @@
+{
+    "presets": [
+        ["@babel/env", {
+            "modules": false,
+            "useBuiltIns": "entry",
+            "targets": "> 0.5%, last 2 versions, Firefox ESR, not dead"
+        }],
+        "@babel/react",
+        "@babel/typescript"
+    ],
+    "plugins": [
+        "@babel/proposal-class-properties"
+    ]
+}

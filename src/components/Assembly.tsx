@@ -5,7 +5,7 @@ import { PositionAbsolute } from "./PositionAbsolute";
 import { Point } from "../types/Point";
 import { Size } from "../types/Size";
 import { Arrow } from "./Arrow";
-import "../curry";
+import { curry } from "../curry2";
 
 const styles = require("./Assembly.scss");
 
@@ -117,14 +117,14 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
     }
 
     // tslint:disable-next-line:member-ordering
-    private onBranchMount = ((domSize: Size, id: string) => {
+    private onBranchMount = curry((domSize: Size, id: string) => {
         this.setState(state => ({
             branchSizes: {...state.branchSizes, [id]: domSize},
         }));
-    }).curry<Size>();
+    });
 
     // tslint:disable-next-line:member-ordering
-    private onDragStart = ((e: React.DragEvent, id: string) => {
+    private onDragStart = curry((e: React.DragEvent, id: string) => {
         const dragged = e.currentTarget;
         const rect = dragged.getBoundingClientRect();
         const dragX = e.clientX - rect.left;
@@ -133,7 +133,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         this.setState({
             dragged: { branchId: id, dragPos: { x: dragX, y: dragY }},
         });
-    }).curry<React.DragEvent>();
+    });
 
     private onDragEnd = (e: React.DragEvent) => {
         // TODO [RM]: is ALWAYS `dragend` fired AFTER `drop`?

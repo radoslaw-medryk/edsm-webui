@@ -12,7 +12,7 @@ export type OperationState = {
     //
 };
 
-export class Operation extends React.Component<OperationProps, OperationState> {
+export class Operation extends React.PureComponent<OperationProps, OperationState> {
     constructor(props: OperationProps) {
         super(props);
     }

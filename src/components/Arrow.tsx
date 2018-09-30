@@ -7,7 +7,7 @@ export type ArrowProps = {
 };
 
 export const Arrow: React.SFC<ArrowProps> = ({ points, color }) => {
-    let d: string = "M0 0";
+    let d: string | null = null;
 
     let minX = 0;
     let minY = 0;
@@ -15,12 +15,18 @@ export const Arrow: React.SFC<ArrowProps> = ({ points, color }) => {
     let maxY = 0;
     for (const point of points) {
         // TODO [RM]: is using `+=` here a performance problem?
-        d += ` L${point.x} ${point.y}`;
+        d = d === null
+            ? `M${point.x} ${point.y}`
+            : d + ` L${point.x} ${point.y}`;
 
         minX = point.x < minX ? point.x : minX;
         minY = point.y < minY ? point.y : minY;
         maxX = point.x > maxX ? point.x : maxX;
         maxY = point.y > maxY ? point.y : maxY;
+    }
+
+    if (!d) {
+        return null;
     }
 
     const width = maxX - minY;

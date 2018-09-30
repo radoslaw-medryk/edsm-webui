@@ -4,6 +4,8 @@ import { Branch } from "./Branch";
 import { PositionAbsolute } from "./PositionAbsolute";
 import { Point } from "../types/Point";
 import { Size } from "../types/Size";
+import { Arrow } from "./Arrow";
+import "../curry";
 
 const styles = require("./Assembly.scss");
 
@@ -93,17 +95,18 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
 
         return (
             <div ref={this.boxRef} className={styles.box}>
+                <Arrow color="#414141" points={[getPosition("0x00"), getPosition("0x02")]}/>
                 {data.branches.map(branch =>
                     <PositionAbsolute
                         key={branch.position}
                         className={getClassName(branch.position)}
                         position={getPosition(branch.position)}
                         draggable={true}
-                        onDragStart={e => this.onDragStart(e, branch.position)}
+                        onDragStart={this.onDragStart(branch.position)}
                         onDragEnd={this.onDragEnd}
                     >
                         <Branch
-                            onMount={domSize => this.onBranchMount(branch.position, domSize)}
+                            onMount={this.onBranchMount(branch.position)}
                             className={styles.branch}
                             data={branch}
                         />
@@ -113,13 +116,15 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         );
     }
 
-    private onBranchMount = (id: string, domSize: Size) => {
+    // tslint:disable-next-line:member-ordering
+    private onBranchMount = ((domSize: Size, id: string) => {
         this.setState(state => ({
             branchSizes: {...state.branchSizes, [id]: domSize},
         }));
-    }
+    }).curry<Size>();
 
-    private onDragStart = (e: React.DragEvent, id: string) => {
+    // tslint:disable-next-line:member-ordering
+    private onDragStart = ((e: React.DragEvent, id: string) => {
         const dragged = e.currentTarget;
         const rect = dragged.getBoundingClientRect();
         const dragX = e.clientX - rect.left;
@@ -128,7 +133,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         this.setState({
             dragged: { branchId: id, dragPos: { x: dragX, y: dragY }},
         });
-    }
+    }).curry<React.DragEvent>();
 
     private onDragEnd = (e: React.DragEvent) => {
         // TODO [RM]: is ALWAYS `dragend` fired AFTER `drop`?
@@ -146,9 +151,42 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
+        if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+            console.log("CANCEL1");
+            e.preventDefault(); // TODO [RM]: needed?
+            return;
+        }
+
+        const canDrop = (state: AssemblyState) => {
+            const dragged = state.dragged;
+            if (!dragged) {
+                return false;
+            }
+
+            if (x < dragged.dragPos.x || y < dragged.dragPos.y) {
+                console.log("CANCEL1");
+                e.preventDefault(); // TODO [RM]: needed?
+                return false;
+            }
+
+            const draggedSize = state.branchSizes[dragged.branchId];
+            if (!draggedSize) {
+                throw new Error("draggedSize === null | undefined.");
+            }
+
+            if (x > rect.width - draggedSize.width + dragged.dragPos.x
+            || y > rect.height - draggedSize.height + dragged.dragPos.y) {
+                console.log("CANCEL1");
+                e.preventDefault(); // TODO [RM]: needed?
+                return false;
+            }
+
+            return true;
+        };
+
         this.setState(state => ({
             dragged: null,
-            branchPositions: state.dragged
+            branchPositions: state.dragged && canDrop(state)
                 ? {
                     ...state.branchPositions,
                     [state.dragged.branchId]: {
@@ -169,7 +207,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         const { branchSizes } = this.state;
         const result: BranchPositions = {};
 
-        let nextX = 0;
+        const nextX = 0;
         let nextY = 0;
         for (const branch of branches) {
             const domSize = branchSizes[branch.position];
@@ -181,7 +219,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
             result[branch.position] = position;
 
             nextY += domSize.height + 20;
-            nextX += 20;
+            // nextX += 20;
         }
 
         return result;

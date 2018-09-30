@@ -16,7 +16,7 @@ export type BranchState = {
     //
 };
 
-export class Branch extends React.Component<BranchProps, BranchState> {
+export class Branch extends React.PureComponent<BranchProps, BranchState> {
     private boxRef: React.RefObject<HTMLDivElement>;
 
     constructor(props: BranchProps) {
@@ -44,6 +44,8 @@ export class Branch extends React.Component<BranchProps, BranchState> {
             {
                 [styles.inaccessible]: !data.isAccessible,
             });
+
+        console.log(`branch '${data.position}' render().`);
 
         return (
             <div ref={this.boxRef} className={className}>

@@ -1,7 +1,11 @@
-type Nodex = {
+type MemoryNode = {
     f: any | null,
-    map: Map<any, Nodex>;
+    map: Map<any, MemoryNode>;
 };
+
+function newMemoryNode() {
+    return { f: null, map: new Map<any, MemoryNode>() };
+}
 
 function simpleCurry<TOut>(func: Func<TOut>)
     : CurryFunction<TOut>;
@@ -29,23 +33,27 @@ function simpleCurry<TOut, T1, T2, T3>(func: FuncUnion<TOut, T1, T2, T3>, a2?: T
     }
 }
 
-function getFunc<TOut>(memory: Map<any, Nodex>, func: Func<TOut>)
+function getFunc<TOut>(memory: MemoryNode, func: Func<TOut>)
     : CurryFunction<TOut>;
-function getFunc<TOut, T1>(memory: Map<any, Nodex>, func: Func1<TOut, T1>)
+function getFunc<TOut, T1>(memory: MemoryNode, func: Func1<TOut, T1>)
     : CurryFunction1<TOut, T1>;
-function getFunc<TOut, T1, T2>(memory: Map<any, Nodex>, func: Func2<TOut, T1, T2>, a2: T2)
+function getFunc<TOut, T1, T2>(memory: MemoryNode, func: Func2<TOut, T1, T2>, a2: T2)
     : CurryFunction2<TOut, T1, T2>;
-function getFunc<TOut, T1, T2, T3>(memory: Map<any, Nodex>, func: Func3<TOut, T1, T2, T3>, a2: T2, a3: T3)
+function getFunc<TOut, T1, T2, T3>(memory: MemoryNode, func: Func3<TOut, T1, T2, T3>, a2: T2, a3: T3)
     : CurryFunction3<TOut, T1, T2, T3>;
-function getFunc<TOut, T1, T2, T3>(memory: Map<any, Nodex>, func: FuncUnion<TOut, T1, T2, T3>, a2: T2, a3?: T3) {
+function getFunc<TOut, T1, T2, T3>(memory: MemoryNode, func: FuncUnion<TOut, T1, T2, T3>, a2: T2, a3?: T3) {
     let args: Array<T2 | T3 | undefined> | null = null;
 
     if (isFunc(func)) {
-        // TODO [RM]: cannot just return, must store in memory so every time returns the same instance
-        return simpleCurry(func);
+        if (!memory.f) {
+            memory.f = simpleCurry(func);
+        }
+        return memory.f;
     } else if (isFunc1(func)) {
-        // TODO [RM]: cannot just return, must store in memory so every time returns the same instance
-        return simpleCurry(func);
+        if (!memory.f) {
+            memory.f = simpleCurry(func);
+        }
+        return memory.f;
     }
 
     // tslint:disable-next-line:prefer-conditional-expression
@@ -59,15 +67,15 @@ function getFunc<TOut, T1, T2, T3>(memory: Map<any, Nodex>, func: FuncUnion<TOut
         throw new Error("!args");
     }
 
-    let previous: Map<any, Nodex> = memory;
+    let previous: MemoryNode = memory;
 
     for (let i = 0; i < args.length; i++) {
         const v = args[i];
 
-        let current = previous.get(v);
+        let current = previous.map.get(v);
         if (!current) {
-            current = { f: null, map: new Map<any, Nodex>() };
-            previous.set(v, current);
+            current = newMemoryNode();
+            previous.map.set(v, current);
         }
 
         const isLast = i === args.length - 1;
@@ -84,7 +92,7 @@ function getFunc<TOut, T1, T2, T3>(memory: Map<any, Nodex>, func: FuncUnion<TOut
             return current.f;
         }
 
-        previous = current.map;
+        previous = current;
     }
 
     throw new Error("Returned nothing.");
@@ -130,7 +138,7 @@ export function curry<TOut, T1>(func1: Func1<TOut, T1>): CurryFunction1<TOut, T1
 export function curry<TOut, T1, T2>(func2: Func2<TOut, T1, T2>): CurryFunction2<TOut, T1, T2>;
 export function curry<TOut, T1, T2, T3>(func3: Func3<TOut, T1, T2, T3>): CurryFunction3<TOut, T1, T2, T3>;
 export function curry<TOut, T1, T2, T3>(func: FuncUnion<TOut, T1, T2, T3>) {
-    const memory = new Map<any, Nodex>();
+    const memory = newMemoryNode();
 
     if (isFunc(func)) {
         return () => getFunc(memory, func);
@@ -138,7 +146,7 @@ export function curry<TOut, T1, T2, T3>(func: FuncUnion<TOut, T1, T2, T3>) {
         return () => getFunc(memory, func);
     } else  if (isFunc2(func)) {
         return (a2: T2) => getFunc(memory, func, a2);
-    } else {
+    } else if (isFunc3(func)) {
         return (a2: T2, a3: T3) => getFunc(memory, func, a2, a3);
     }
 }

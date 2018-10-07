@@ -6,6 +6,7 @@ const styles = require("./Operation.scss");
 
 export type OperationProps = {
     data: OperationData;
+    onClick?: () => void;
 };
 
 export type OperationState = {
@@ -18,10 +19,10 @@ export class Operation extends React.PureComponent<OperationProps, OperationStat
     }
 
     public render() {
-        const { data } = this.props;
+        const { data, onClick } = this.props;
 
         return (
-            <div className={styles.box}>
+            <div className={styles.box} onClick={onClick}>
                 {/* <div className={styles.position}>{props.data.position}</div> */}
                 <div className={styles.opcode}><OpCodeName opCode={data.opCode}/></div>
                 <div className={styles.input}>{data.inCodeInput}</div>

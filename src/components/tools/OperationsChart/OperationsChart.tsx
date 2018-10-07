@@ -18,7 +18,8 @@ export class OperationsChart extends React.Component<OperationsChartProps, Opera
     }
 
     public render() {
-        const { selection } = this.props.context;
+        const { context } = this.props;
+        const { selection } = context;
 
         if (!selection.branch) {
             return null;
@@ -28,7 +29,13 @@ export class OperationsChart extends React.Component<OperationsChartProps, Opera
 
         return (
             <div className={styles.box}>
-                {operations.map(q => <OperationBox key={q.position} data={q}/>)}
+                {operations.map(q => (
+                    <OperationBox
+                        key={q.position}
+                        data={q}
+                        context={context}
+                    />
+                ))}
             </div>
         );
     }

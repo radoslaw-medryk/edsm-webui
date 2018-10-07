@@ -2,4 +2,8 @@
     background: pink;
     padding: 5px;
     border: 1px dotted red;
+
+    &.selected {
+        background: lightgreen;
+    }
 }

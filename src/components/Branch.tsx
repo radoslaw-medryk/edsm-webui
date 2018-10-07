@@ -4,14 +4,16 @@ import { Operation } from "./Operation";
 import { ClassNameProps } from "../types/props";
 import classNames from "classnames";
 import { Size } from "../types/Size";
+import { OperationData } from "../contracts/OperationData";
+import { curry } from "@radoslaw-medryk/react-curry";
+import { AssemblyContextData } from "./contexts/AssemblyContext";
 
 const styles = require("./Branch.scss");
 
 export type BranchProps = ClassNameProps & {
     data: BranchData;
+    context: AssemblyContextData;
     onMount?: (domSize: Size) => void;
-
-    isSelected: boolean;
 };
 
 export type BranchState = {
@@ -38,7 +40,10 @@ export class Branch extends React.PureComponent<BranchProps, BranchState> {
 
     public render() {
         // tslint:disable-next-line:prefer-const
-        let { className, data, isSelected } = this.props;
+        let { className, data, context } = this.props;
+
+        const { selection } = context;
+        const isSelected = selection.branch === data;
 
         className = classNames(
             styles.box,
@@ -52,13 +57,33 @@ export class Branch extends React.PureComponent<BranchProps, BranchState> {
 
         return (
             <div ref={this.boxRef} className={className}>
-                <div className={styles.header}>
+                <div
+                    className={styles.header}
+                    onClick={this.onHeaderClick}
+                >
                     [ {data.position} ]
                 </div>
                 <div className={styles.operations}>
-                    {data.operations.map(q => <Operation key={q.position} data={q}/>)}
+                    {data.operations.map(q => (
+                        <Operation
+                            key={q.position}
+                            data={q}
+                            onClick={this.onOperationClick(q)}
+                        />
+                    ))}
                 </div>
             </div>
         );
     }
+
+    private onHeaderClick = () => {
+        const { data, context } = this.props;
+        context.setSelection({ branch: data, operation: null });
+    }
+
+    private onOperationClick = curry((operation: OperationData) => () => {
+        const { data, context } = this.props;
+        context.setSelection({ branch: data, operation: operation });
+
+    });
 }

@@ -7,7 +7,6 @@ import { Arrow } from "./Arrow";
 import { curry } from "@radoslaw-medryk/react-curry";
 import classNames from "classnames";
 import { AssemblyContextData } from "./contexts/AssemblyContext";
-import { BranchData } from "../contracts/BranchData";
 
 const styles = require("./Assembly.scss");
 
@@ -99,8 +98,6 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
             [styles.dragged]: dragged && dragged.branchId === id,
         });
         const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
-        const isSelected = (id: string) => !!context.selection.branch
-            && context.selection.branch.position === id;
 
         return (
             <div
@@ -117,13 +114,12 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                         draggable={true}
                         onDragStart={this.onDragStart(branch.position)}
                         onDragEnd={this.onDragEnd}
-                        onClick={this.onBranchClick(branch)}
                     >
                         <Branch
                             onMount={this.onBranchMount(branch.position)}
                             className={styles.branch}
                             data={branch}
-                            isSelected={isSelected(branch.position)}
+                            context={context}
                         />
                     </PositionAbsolute>
                 )}
@@ -143,10 +139,6 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         this.setState(state => ({
             branchSizes: {...state.branchSizes, [id]: domSize},
         }));
-    });
-
-    private onBranchClick = curry((branch: BranchData) => (e: React.MouseEvent) => {
-        this.props.context.setSelection({ branch: branch, operation: null });
     });
 
     private onDragStart = curry((id: string) => (e: React.DragEvent) => {

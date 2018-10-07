@@ -13,6 +13,7 @@
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.0.0",
     "@radoslaw-medryk/react-axios": "file:../../@radoslaw-medryk/react-axios",
+    "@radoslaw-medryk/react-curry": "file:../../@radoslaw-medryk/react-curry",
     "@types/classnames": "^2.2.6",
     "@types/react": "^16.4.11",
     "@types/react-dom": "^16.0.7",

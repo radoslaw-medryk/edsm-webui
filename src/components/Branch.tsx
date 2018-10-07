@@ -10,6 +10,8 @@ const styles = require("./Branch.scss");
 export type BranchProps = ClassNameProps & {
     data: BranchData;
     onMount?: (domSize: Size) => void;
+
+    isSelected: boolean;
 };
 
 export type BranchState = {
@@ -36,13 +38,14 @@ export class Branch extends React.PureComponent<BranchProps, BranchState> {
 
     public render() {
         // tslint:disable-next-line:prefer-const
-        let { className, data } = this.props;
+        let { className, data, isSelected } = this.props;
 
         className = classNames(
             styles.box,
             className,
             {
                 [styles.inaccessible]: !data.isAccessible,
+                [styles.selected]: isSelected,
             });
 
         console.log(`branch '${data.position}' render().`);

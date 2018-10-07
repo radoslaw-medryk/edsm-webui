@@ -20,6 +20,7 @@
                 }
             }
         ],
+        "member-ordering": false,
         "no-unused-expression": false,
         "interface-over-type-literal": false,
         "jsx-no-lambda": false,

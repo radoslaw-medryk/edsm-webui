@@ -1,0 +1,5 @@
+@import "./colors.scss";
+
+$selected-border-color: $blue-vivid;
+$selected-background-color: $blue-alice;
+$selected-border: 2px dotted $selected-border-color;

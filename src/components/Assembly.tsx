@@ -1,11 +1,13 @@
 import * as React from "react";
-import { AssemblyData } from "../contracts/AssemblyData";
 import { Branch } from "./Branch";
 import { PositionAbsolute } from "./PositionAbsolute";
 import { Point } from "../types/Point";
 import { Size } from "../types/Size";
 import { Arrow } from "./Arrow";
-import { curry } from "../curry2";
+import { curry } from "@radoslaw-medryk/react-curry";
+import classNames from "classnames";
+import { AssemblyContextData } from "./contexts/AssemblyContext";
+import { BranchData } from "../contracts/BranchData";
 
 const styles = require("./Assembly.scss");
 
@@ -13,8 +15,10 @@ type BranchSizes = { [key: string]: Size | undefined };
 type BranchPositions = { [key: string]: Point | undefined };
 type Dragged = { branchId: string, dragPos: Point };
 
+// TODO [RM]: add select branch feature and display branch details somewhere.
+
 export type AssemblyProps = {
-    data: AssemblyData;
+    context: AssemblyContextData;
 };
 
 export type AssemblyState = {
@@ -35,6 +39,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
             branchSizes: {},
             branchPositions: {},
             dragged: null,
+            selected: null,
         };
     }
 
@@ -68,7 +73,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
     public componentDidUpdate(prevProps: AssemblyProps, prevState: AssemblyState) {
         const prevMountedBranchCount = Object.keys(prevState.branchSizes).length;
         const mountedBranchCount = Object.keys(this.state.branchSizes).length;
-        const allBranchCount = this.props.data.branches.length;
+        const allBranchCount = this.props.context.data.branches.length;
 
         if (prevMountedBranchCount === mountedBranchCount) {
             return;
@@ -87,16 +92,24 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
      }
 
     public render() {
-        const { data } = this.props;
+        const { context } = this.props;
         const { branchPositions, dragged } = this.state;
 
-        const getClassName = (id: string) => dragged && dragged.branchId === id ? styles.dragged : null;
+        const getClassName = (id: string) => classNames({
+            [styles.dragged]: dragged && dragged.branchId === id,
+        });
         const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
+        const isSelected = (id: string) => !!context.selection.branch
+            && context.selection.branch.position === id;
 
         return (
-            <div ref={this.boxRef} className={styles.box}>
+            <div
+                ref={this.boxRef}
+                className={styles.box}
+                onClick={this.onClick}
+            >
                 <Arrow color="#414141" points={[getPosition("0x00"), getPosition("0x02")]}/>
-                {data.branches.map(branch =>
+                {context.data.branches.map(branch =>
                     <PositionAbsolute
                         key={branch.position}
                         className={getClassName(branch.position)}
@@ -104,11 +117,13 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                         draggable={true}
                         onDragStart={this.onDragStart(branch.position)}
                         onDragEnd={this.onDragEnd}
+                        onClick={this.onBranchClick(branch)}
                     >
                         <Branch
                             onMount={this.onBranchMount(branch.position)}
                             className={styles.branch}
                             data={branch}
+                            isSelected={isSelected(branch.position)}
                         />
                     </PositionAbsolute>
                 )}
@@ -116,15 +131,25 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         );
     }
 
-    // tslint:disable-next-line:member-ordering
-    private onBranchMount = curry((domSize: Size, id: string) => {
+    private onClick = (e: React.MouseEvent) => {
+        if (e.target !== e.currentTarget) {
+            return;
+        }
+
+        this.props.context.clearSelection();
+    }
+
+    private onBranchMount = curry((id: string) => (domSize: Size) => {
         this.setState(state => ({
             branchSizes: {...state.branchSizes, [id]: domSize},
         }));
     });
 
-    // tslint:disable-next-line:member-ordering
-    private onDragStart = curry((e: React.DragEvent, id: string) => {
+    private onBranchClick = curry((branch: BranchData) => (e: React.MouseEvent) => {
+        this.props.context.setSelection({ branch: branch, operation: null });
+    });
+
+    private onDragStart = curry((id: string) => (e: React.DragEvent) => {
         const dragged = e.currentTarget;
         const rect = dragged.getBoundingClientRect();
         const dragX = e.clientX - rect.left;
@@ -203,7 +228,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
     }
 
     private calculateBranchPositions = (): BranchPositions => {
-        const { branches } = this.props.data;
+        const { branches } = this.props.context.data;
         const { branchSizes } = this.state;
         const result: BranchPositions = {};
 

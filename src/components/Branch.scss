@@ -1,29 +1,47 @@
+@import "../styles/theme.scss";
+
 .box {
     display: inline-block;
     position: absolute;
 
     .header {
+        position: relative; // to have proper stacking order with .selected:before
         padding: 5px;
-        border: 1px solid black;
-        background: lightblue;
+        border: 1px solid black; // TODO [RM]: theme
+        background: lightblue; // TODO [RM]: theme
     }
 
     .operations {
+        position: relative; // to have proper stacking order with .selected:before
         padding: 5px;
-        border: 1px solid black;
+        border: 1px solid black; // TODO [RM]: theme
         border-top: 0;
-        background: white;
+        background: white; // TODO [RM]: theme
     }
 
     &.inaccessible {
         .header {
-            background: lightgray;
-            border: 1px solid gray;
+            background: lightgray; // TODO [RM]: theme
+            border: 1px solid gray; // TODO [RM]: theme
         }
 
         .operations {
-            border: 1px solid gray;
+            border: 1px solid gray; // TODO [RM]: theme
             border-top: 0;
+        }
+    }
+
+    &.selected {
+        $space: 5px;
+        &:before {
+            content: "";
+            position: absolute;
+            top: -$space;
+            right: -$space;
+            bottom: -$space;
+            left: -$space;
+            border: $selected-border;
+            background: $selected-background-color;
         }
     }
 }

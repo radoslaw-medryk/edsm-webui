@@ -3,6 +3,8 @@ import { Axios, AxiosContext, AxiosStatus } from "@radoslaw-medryk/react-axios";
 import { Assembly } from "./Assembly";
 import { ResponseEnvelope } from "../contracts/ResponseEnvelope";
 import { AssemblyData } from "../contracts/AssemblyData";
+import { OperationsChart } from "./tools/OperationsChart/OperationsChart";
+import { AssemblyContext } from "./contexts/AssemblyContext";
 
 type ResponseData = ResponseEnvelope<AssemblyData>;
 
@@ -78,7 +80,16 @@ export class Decompiler extends React.Component<Props, State> {
     }
 
     private renderSuccess = (data: ResponseData) => {
-        return <Assembly data={data.value}/>;
+        return (
+            <AssemblyContext.Provider data={data.value}>
+                <AssemblyContext.Consumer>
+                    {context => <>
+                        <Assembly context={context} />
+                        <OperationsChart context={context}/>
+                    </>}
+                </AssemblyContext.Consumer>
+            </AssemblyContext.Provider>
+        );
     }
 
     private renderError = (error: ErrorData) => {

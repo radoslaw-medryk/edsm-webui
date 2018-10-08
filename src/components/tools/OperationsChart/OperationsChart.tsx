@@ -1,11 +1,11 @@
 import * as React from "react";
 import { OperationBox } from "./OperationBox";
-import { AssemblyContextData } from "../../contexts/AssemblyContext";
+import { SelectionData } from "../../cpus/SelectionCpu";
 
 const styles = require("./OperationsChart.scss");
 
 export type OperationsChartProps = {
-    context: AssemblyContextData;
+    selection: SelectionData;
 };
 
 export type OperationsChartState = {
@@ -18,8 +18,7 @@ export class OperationsChart extends React.Component<OperationsChartProps, Opera
     }
 
     public render() {
-        const { context } = this.props;
-        const { selection } = context;
+        const { selection } = this.props;
 
         if (!selection.branch) {
             return null;
@@ -27,13 +26,15 @@ export class OperationsChart extends React.Component<OperationsChartProps, Opera
 
         const { operations } = selection.branch;
 
+        const isSelected = (id: string) => !!selection.operation && selection.operation.position === id;
+
         return (
             <div className={styles.box}>
                 {operations.map(q => (
                     <OperationBox
                         key={q.position}
                         data={q}
-                        context={context}
+                        isSelected={isSelected(q.position)}
                     />
                 ))}
             </div>

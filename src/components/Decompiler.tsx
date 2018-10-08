@@ -4,7 +4,7 @@ import { Assembly } from "./Assembly";
 import { ResponseEnvelope } from "../contracts/ResponseEnvelope";
 import { AssemblyData } from "../contracts/AssemblyData";
 import { OperationsChart } from "./tools/OperationsChart/OperationsChart";
-import { AssemblyContext } from "./contexts/AssemblyContext";
+import { SelectionCpu } from "./cpus/SelectionCpu";
 
 type ResponseData = ResponseEnvelope<AssemblyData>;
 
@@ -81,14 +81,12 @@ export class Decompiler extends React.Component<Props, State> {
 
     private renderSuccess = (data: ResponseData) => {
         return (
-            <AssemblyContext.Provider data={data.value}>
-                <AssemblyContext.Consumer>
-                    {context => <>
-                        <Assembly context={context} />
-                        <OperationsChart context={context}/>
-                    </>}
-                </AssemblyContext.Consumer>
-            </AssemblyContext.Provider>
+            <SelectionCpu>
+                {selection => <>
+                    <Assembly data={data.value} selection={selection} />
+                    <OperationsChart selection={selection}/>
+                </>}
+            </SelectionCpu>
         );
     }
 

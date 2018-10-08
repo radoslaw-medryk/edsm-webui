@@ -6,7 +6,8 @@ import { Size } from "../types/Size";
 import { Arrow } from "./Arrow";
 import { curry } from "@radoslaw-medryk/react-curry";
 import classNames from "classnames";
-import { AssemblyContextData } from "./contexts/AssemblyContext";
+import { SelectionContext } from "./cpus/SelectionCpu";
+import { AssemblyData } from "../contracts/AssemblyData";
 
 const styles = require("./Assembly.scss");
 
@@ -17,7 +18,8 @@ type Dragged = { branchId: string, dragPos: Point };
 // TODO [RM]: add select branch feature and display branch details somewhere.
 
 export type AssemblyProps = {
-    context: AssemblyContextData;
+    data: AssemblyData;
+    selection: SelectionContext;
 };
 
 export type AssemblyState = {
@@ -38,7 +40,6 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
             branchSizes: {},
             branchPositions: {},
             dragged: null,
-            selected: null,
         };
     }
 
@@ -72,7 +73,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
     public componentDidUpdate(prevProps: AssemblyProps, prevState: AssemblyState) {
         const prevMountedBranchCount = Object.keys(prevState.branchSizes).length;
         const mountedBranchCount = Object.keys(this.state.branchSizes).length;
-        const allBranchCount = this.props.context.data.branches.length;
+        const allBranchCount = this.props.data.branches.length;
 
         if (prevMountedBranchCount === mountedBranchCount) {
             return;
@@ -91,13 +92,15 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
      }
 
     public render() {
-        const { context } = this.props;
+        const { data, selection } = this.props;
         const { branchPositions, dragged } = this.state;
 
         const getClassName = (id: string) => classNames({
             [styles.dragged]: dragged && dragged.branchId === id,
         });
         const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
+
+        const isSelected = (id: string) => !!selection.branch && selection.branch.position === id;
 
         return (
             <div
@@ -106,7 +109,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                 onClick={this.onClick}
             >
                 <Arrow color="#414141" points={[getPosition("0x00"), getPosition("0x02")]}/>
-                {context.data.branches.map(branch =>
+                {data.branches.map(branch =>
                     <PositionAbsolute
                         key={branch.position}
                         className={getClassName(branch.position)}
@@ -119,7 +122,8 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                             onMount={this.onBranchMount(branch.position)}
                             className={styles.branch}
                             data={branch}
-                            context={context}
+                            selectionActions={selection.actions}
+                            isSelected={isSelected(branch.position)}
                         />
                     </PositionAbsolute>
                 )}
@@ -132,7 +136,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
             return;
         }
 
-        this.props.context.clearSelection();
+        this.props.selection.actions.clearSelection();
     }
 
     private onBranchMount = curry((id: string) => (domSize: Size) => {
@@ -220,7 +224,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
     }
 
     private calculateBranchPositions = (): BranchPositions => {
-        const { branches } = this.props.context.data;
+        const { branches } = this.props.data;
         const { branchSizes } = this.state;
         const result: BranchPositions = {};
 

@@ -6,13 +6,14 @@ import classNames from "classnames";
 import { Size } from "../types/Size";
 import { OperationData } from "../contracts/OperationData";
 import { curry } from "@radoslaw-medryk/react-curry";
-import { AssemblyContextData } from "./contexts/AssemblyContext";
+import { SelectionActions } from "./cpus/SelectionCpu";
 
 const styles = require("./Branch.scss");
 
 export type BranchProps = ClassNameProps & {
     data: BranchData;
-    context: AssemblyContextData;
+    selectionActions: SelectionActions;
+    isSelected: boolean,
     onMount?: (domSize: Size) => void;
 };
 
@@ -40,10 +41,7 @@ export class Branch extends React.PureComponent<BranchProps, BranchState> {
 
     public render() {
         // tslint:disable-next-line:prefer-const
-        let { className, data, context } = this.props;
-
-        const { selection } = context;
-        const isSelected = selection.branch === data;
+        let { className, data, isSelected } = this.props;
 
         className = classNames(
             styles.box,
@@ -77,13 +75,13 @@ export class Branch extends React.PureComponent<BranchProps, BranchState> {
     }
 
     private onHeaderClick = () => {
-        const { data, context } = this.props;
-        context.setSelection({ branch: data, operation: null });
+        const { data, selectionActions } = this.props;
+        selectionActions.setSelection({ branch: data, operation: null });
     }
 
     private onOperationClick = curry((operation: OperationData) => () => {
-        const { data, context } = this.props;
-        context.setSelection({ branch: data, operation: operation });
+        const { data, selectionActions } = this.props;
+        selectionActions.setSelection({ branch: data, operation: operation });
 
     });
 }

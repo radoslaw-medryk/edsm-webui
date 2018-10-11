@@ -4,10 +4,11 @@ import { ElementProps } from "../types/props";
 
 export type PositionAbsoluteProps = {
     position?: Point;
+    boxRef?: React.Ref<HTMLDivElement>;
 } & ElementProps<HTMLDivElement>;
 
 export const PositionAbsolute: React.SFC<PositionAbsoluteProps> = props => {
-    const { children, position, ...restProps } = props;
+    const { children, boxRef, position, ...restProps } = props;
 
     const style: React.CSSProperties = {position: "absolute"};
     if (position) {
@@ -16,7 +17,7 @@ export const PositionAbsolute: React.SFC<PositionAbsoluteProps> = props => {
     }
 
     return (
-        <div {...restProps} style={style}>
+        <div ref={boxRef} {...restProps} style={style}>
             {children}
         </div>
     );

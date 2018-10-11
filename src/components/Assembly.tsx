@@ -8,6 +8,8 @@ import { curry } from "@radoslaw-medryk/react-curry";
 import classNames from "classnames";
 import { SelectionContext } from "./cpus/SelectionCpu";
 import { AssemblyData } from "../contracts/AssemblyData";
+import { DragDropCanvas } from "./DragDropCanvas";
+import { DragDropElement } from "./DragDropElement";
 
 const styles = require("./Assembly.scss");
 
@@ -108,6 +110,14 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                 className={styles.box}
                 onClick={this.onClick}
             >
+                <DragDropCanvas
+                    style={{ width: 500, height: 500, border: "3px dotted pink" }}
+                    initElements={{ ["hiho"]: { position: { x: 0, y: 0 } } }}
+                >
+                    <DragDropElement style={{ padding: 30, background: "lightblue" }} id="hiho">
+                        HIHO!
+                    </DragDropElement>
+                </DragDropCanvas>
                 <Arrow color="#414141" points={[getPosition("0x00"), getPosition("0x02")]}/>
                 {data.branches.map(branch =>
                     <PositionAbsolute

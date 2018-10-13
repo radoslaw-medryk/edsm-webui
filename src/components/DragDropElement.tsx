@@ -1,19 +1,17 @@
 import * as React from "react";
 import { PositionAbsolute } from "./PositionAbsolute";
 import { ElementProps } from "../types/props";
-import classNames from "classnames";
 import { DragDropContext, DragDropContextData } from "./contexts/DragDropContext";
 import { curry } from "@radoslaw-medryk/react-curry";
 import { Point } from "../types/Point";
-
-const styles = require("./DragDropElement.scss");
+import { Size } from "../types/Size";
 
 export type DragDropElementProps = {
-    id: string;
+    elementId: string;
 } & ElementProps<HTMLDivElement>;
 
 export type DragDropElementState = {
-    dragPosition: Point | null;
+    //
 };
 
 export class DragDropElement extends React.Component<DragDropElementProps, DragDropElementState> {
@@ -22,20 +20,16 @@ export class DragDropElement extends React.Component<DragDropElementProps, DragD
     constructor(props: DragDropElementProps) {
         super(props);
 
-        this.state = {
-            dragPosition: null,
-        };
-
         this.box = null;
     }
 
     public render() {
-        const { id, className, draggable, onDragStart, onDragEnd, ...rest } = this.props;
+        const { elementId, onDragStart, children, ...rest } = this.props;
 
-        const getPosition = (context: DragDropContextData, elementId: string) => {
-            const element = context.elements[elementId];
+        const getPosition = (context: DragDropContextData, id: string) => {
+            const element = context.elements[id];
             if (!element) {
-                throw new Error(`!context.elements[${elementId}]`);
+                throw new Error(`!context.elements[${id}]`);
             }
 
             return element.position;
@@ -45,16 +39,13 @@ export class DragDropElement extends React.Component<DragDropElementProps, DragD
             <DragDropContext.Consumer>
                 {context => <>
                     <PositionAbsolute
-                        boxRef={this.setBox}
-                        id={id}
-                        className={classNames(styles.box, className)}
-                        draggable={true}
-                        position={getPosition(context, id)}
-                        onDragStart={this.onDragStart(context)}
-                        onDragEnd={this.onDragEnd(context)}
                         {...rest}
+                        boxRef={this.setBox}
+                        draggable={true}
+                        position={getPosition(context, elementId)}
+                        onDragStart={this.onDragStart(context)}
                     >
-                        {this.props.children}
+                        {children}
                     </PositionAbsolute>
                 </>}
             </DragDropContext.Consumer>
@@ -66,32 +57,22 @@ export class DragDropElement extends React.Component<DragDropElementProps, DragD
     }
 
     private onDragStart = curry((context: DragDropContextData) => (e: React.DragEvent<HTMLDivElement>) => {
+        const { elementId } = this.props;
+
         if (!this.box) {
             throw new Error("!this.box");
         }
-
-        const id = this.props.id;
 
         const rect = this.box.getBoundingClientRect();
         const dragPosition: Point = {
             x: e.clientX - rect.left,
             y: e.clientY - rect.top,
         };
-        this.setState({ dragPosition: dragPosition });
-    });
-
-    private onDragEnd = curry((context: DragDropContextData) => (e: React.DragEvent<HTMLDivElement>) => {
-        const { id } = this.props;
-        const { dragPosition } = this.state;
-
-        if (!dragPosition) {
-            throw new Error ("!dragPosition");
-        }
-
-        const clientPosition: Point = {
-            x: e.clientX - dragPosition.x,
-            y: e.clientY - dragPosition.y,
+        const elementSize: Size = {
+            width: rect.width,
+            height: rect.height,
         };
-        context.onElementDragEnd(id, clientPosition);
+
+        context.onElementDragStart(elementId, dragPosition, elementSize);
     });
 }

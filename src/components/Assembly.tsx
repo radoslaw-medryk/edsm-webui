@@ -104,6 +104,11 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
 
         const isSelected = (id: string) => !!selection.branch && selection.branch.position === id;
 
+        const initElements = {
+            ["hiho"]: { position: { x: 0, y: 0 } },
+            ["zoey"]: { position: { x: 50, y: 0 } },
+        };
+
         return (
             <div
                 ref={this.boxRef}
@@ -112,10 +117,13 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
             >
                 <DragDropCanvas
                     style={{ width: 500, height: 500, border: "3px dotted pink" }}
-                    initElements={{ ["hiho"]: { position: { x: 0, y: 0 } } }}
+                    initElements={initElements}
                 >
-                    <DragDropElement style={{ padding: 30, background: "lightblue" }} id="hiho">
-                        HIHO!
+                    <DragDropElement style={{ padding: 30, background: "lightblue" }} elementId="hiho">
+                        Hello
+                    </DragDropElement>
+                    <DragDropElement style={{ padding: 30, background: "lightblue" }} elementId="zoey">
+                        Zoey!
                     </DragDropElement>
                 </DragDropCanvas>
                 <Arrow color="#414141" points={[getPosition("0x00"), getPosition("0x02")]}/>

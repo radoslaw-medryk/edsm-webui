@@ -3,21 +3,23 @@ import { Point } from "../types/Point";
 import { ElementProps } from "../types/props";
 
 export type PositionAbsoluteProps = {
-    position?: Point;
+    position: Point;
     boxRef?: React.Ref<HTMLDivElement>;
 } & ElementProps<HTMLDivElement>;
 
 export const PositionAbsolute: React.SFC<PositionAbsoluteProps> = props => {
-    const { children, boxRef, position, ...restProps } = props;
+    // tslint:disable-next-line:prefer-const
+    let { children, boxRef, style, position, ...rest } = props;
 
-    const style: React.CSSProperties = {position: "absolute"};
-    if (position) {
-        style.left = position.x;
-        style.top = position.y;
-    }
+    style = {
+        ...style,
+        position: "absolute",
+        left: position.x,
+        top: position.y,
+    };
 
     return (
-        <div ref={boxRef} {...restProps} style={style}>
+        <div {...rest} ref={boxRef} style={style}>
             {children}
         </div>
     );

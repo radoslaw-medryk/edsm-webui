@@ -1,17 +1,16 @@
 import * as React from "react";
-import classNames from "classnames";
 import { ElementProps } from "../types/props";
 import { DragDropContext, DragDropContextData, DragDropContextElements } from "./contexts/DragDropContext";
 import { Point } from "../types/Point";
-
-const styles = require("./DragDropCanvas.scss");
+import { Size } from "../types/Size";
+import { curry } from "@radoslaw-medryk/react-curry";
 
 export type DragDropCanvasProps = {
     initElements?: DragDropContextElements;
 } & ElementProps<HTMLDivElement>;
 
 export type DragDropCanvasState = {
-    //
+    dragged: { id: string, dragPosition: Point, elementSize: Size } | null;
 };
 
 export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDropCanvasState> {
@@ -19,51 +18,34 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
 
     constructor(props: DragDropCanvasProps) {
         super(props);
-    }
 
-    public componentDidMount() {
-        const box = this.box;
-        if (box === null) {
-            throw new Error("box === null");
-        }
-
-        box.addEventListener("dragover", this.preventDefaultHandler);
-        box.addEventListener("dragenter", this.preventDefaultHandler);
-        box.addEventListener("dragleave", this.preventDefaultHandler);
-        box.addEventListener("drag", this.onDrag);
-        box.addEventListener("drop", this.onDrop);
-    }
-
-    public componentWillUnmount() {
-        const box = this.box;
-        if (box === null) {
-            throw new Error("box === null");
-        }
-
-        box.removeEventListener("dragover", this.preventDefaultHandler);
-        box.removeEventListener("dragenter", this.preventDefaultHandler);
-        box.removeEventListener("dragleave", this.preventDefaultHandler);
-        box.removeEventListener("drag", this.onDrag);
-        box.removeEventListener("drop", this.onDrop);
+        this.state = {
+            dragged: null,
+        };
     }
 
     public render() {
-        // tslint:disable-next-line:prefer-const
-        let { initElements, className, ref, children, ...rest } = this.props;
-        className = classNames(styles.box, className);
+        const { initElements, children, ...rest } = this.props;
 
         return (
             <DragDropContext.Provider
                 initElements={initElements}
-                onElementDragEnd={this.onElementDragEnd}
+                onElementDragStart={this.onElementDragStart}
             >
-                <div
-                    ref={this.setBox}
-                    className={className}
-                    {...rest}
-                >
-                    {children}
-                </div>
+                <DragDropContext.Consumer>
+                    {context => <>
+                        <div
+                            {...rest}
+                            ref={this.setBox}
+                            onDragOver={this.preventDefaultHandler}
+                            onDragEnter={this.preventDefaultHandler}
+                            onDragLeave={this.preventDefaultHandler}
+                            onDrop={this.onDrop(context)}
+                        >
+                            {children}
+                        </div>
+                    </>}
+                </DragDropContext.Consumer>
             </DragDropContext.Provider>
         );
     }
@@ -72,38 +54,43 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
         this.box = box;
     }
 
-    private onElementDragEnd = (context: DragDropContextData, id: string, clientPosition: Point) => {
+    private onElementDragStart = (id: string, dragPosition: Point, elementSize: Size) => {
+        this.setState({
+            dragged: { id: id, dragPosition: dragPosition, elementSize: elementSize },
+        });
+    }
+
+    private onDrop = curry((context: DragDropContextData) => (e: React.DragEvent<HTMLDivElement>) => {
         if (!this.box) {
             throw new Error("!this.box");
         }
 
-        const rect = this.box.getBoundingClientRect();
-        const x = clientPosition.x - rect.left;
-        const y = clientPosition.y - rect.top;
+        const { dragged } = this.state;
+        if (!dragged) {
+            throw new Error("!dragged");
+        }
 
-        if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+        // TODO [RM]: check / get dragged element from event?
+
+        const dragPosition = dragged.dragPosition;
+        const size = dragged.elementSize;
+
+        const rect = this.box.getBoundingClientRect();
+        const x = e.clientX - dragPosition.x - rect.left;
+        const y = e.clientY - dragPosition.y - rect.top;
+
+        if (x < 0 || x + size.width > rect.width
+            || y < 0 || y + size.height > rect.height) {
             // out of boundaries
             return;
         }
 
-        // TODO [RM]: check if in range
-
         context.updateElements({
-            [id]: {
+            [dragged.id]: {
                 position: {x: x, y: y},
             },
         });
+    });
 
-    }
-
-    private onDrag = (e: DragEvent) => {
-        //
-    }
-
-    private onDrop = (e: DragEvent) => {
-        //
-    }
-
-    private preventDefaultHandler = (e: Event) => e.preventDefault();
-
+    private preventDefaultHandler = (e: React.SyntheticEvent) => e.preventDefault();
 }

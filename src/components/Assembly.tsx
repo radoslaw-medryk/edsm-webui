@@ -1,11 +1,8 @@
 import * as React from "react";
 import { Branch } from "./Branch";
-import { PositionAbsolute } from "./PositionAbsolute";
 import { Point } from "../types/Point";
 import { Size } from "../types/Size";
-import { Arrow } from "./Arrow";
 import { curry } from "@radoslaw-medryk/react-curry";
-import classNames from "classnames";
 import { SelectionContext } from "./cpus/SelectionCpu";
 import { AssemblyData } from "../contracts/AssemblyData";
 import { DragDropCanvas } from "./DragDropCanvas";
@@ -15,9 +12,6 @@ const styles = require("./Assembly.scss");
 
 type BranchSizes = { [key: string]: Size | undefined };
 type BranchPositions = { [key: string]: Point | undefined };
-type Dragged = { branchId: string, dragPos: Point };
-
-// TODO [RM]: add select branch feature and display branch details somewhere.
 
 export type AssemblyProps = {
     data: AssemblyData;
@@ -27,49 +21,16 @@ export type AssemblyProps = {
 export type AssemblyState = {
     branchSizes: BranchSizes;
     branchPositions: BranchPositions;
-
-    dragged: Dragged | null;
 };
 
 export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
-    private boxRef: React.RefObject<HTMLDivElement>;
-
     constructor(props: AssemblyProps) {
         super(props);
-        this.boxRef = React.createRef();
 
         this.state = {
             branchSizes: {},
             branchPositions: {},
-            dragged: null,
         };
-    }
-
-    public componentDidMount() {
-        const box = this.boxRef.current;
-        if (box === null) {
-            throw new Error("this.boxRef === null");
-        }
-
-        box.addEventListener("dragover", this.preventDefaultHandler);
-        box.addEventListener("dragenter", this.preventDefaultHandler);
-        box.addEventListener("dragleave", this.preventDefaultHandler);
-        box.addEventListener("drag", this.onDrag);
-        box.addEventListener("drop", this.onDrop);
-
-    }
-
-    public componentWillUnmount() {
-        const box = this.boxRef.current;
-        if (box === null) {
-            throw new Error("this.boxRef === null");
-        }
-
-        box.removeEventListener("dragover", this.preventDefaultHandler);
-        box.removeEventListener("dragenter", this.preventDefaultHandler);
-        box.removeEventListener("dragleave", this.preventDefaultHandler);
-        box.removeEventListener("drag", this.onDrag);
-        box.removeEventListener("drop", this.onDrop);
     }
 
     public componentDidUpdate(prevProps: AssemblyProps, prevState: AssemblyState) {
@@ -95,46 +56,32 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
 
     public render() {
         const { data, selection } = this.props;
-        const { branchPositions, dragged } = this.state;
+        // const { branchPositions } = this.state;
 
-        const getClassName = (id: string) => classNames({
-            [styles.dragged]: dragged && dragged.branchId === id,
-        });
-        const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
+        // const getClassName = (id: string) => classNames({
+        //     [styles.dragged]: dragged && dragged.branchId === id,
+        // });
+        // const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
 
         const isSelected = (id: string) => !!selection.branch && selection.branch.position === id;
 
-        const initElements = {
-            ["hiho"]: { position: { x: 0, y: 0 } },
-            ["zoey"]: { position: { x: 50, y: 0 } },
-        };
+        console.log(data.branches);
+        const initElements = data.branches
+            .reduce((a, c) => {
+                a[c.position] = { position: { x: 0, y: 0 }};
+                return a;
+            }, {});
 
         return (
-            <div
-                ref={this.boxRef}
+            <DragDropCanvas
                 className={styles.box}
                 onClick={this.onClick}
+                initElements={initElements}
             >
-                <DragDropCanvas
-                    style={{ width: 500, height: 500, border: "3px dotted pink" }}
-                    initElements={initElements}
-                >
-                    <DragDropElement style={{ padding: 30, background: "lightblue" }} elementId="hiho">
-                        Hello
-                    </DragDropElement>
-                    <DragDropElement style={{ padding: 30, background: "lightblue" }} elementId="zoey">
-                        Zoey!
-                    </DragDropElement>
-                </DragDropCanvas>
-                <Arrow color="#414141" points={[getPosition("0x00"), getPosition("0x02")]}/>
                 {data.branches.map(branch =>
-                    <PositionAbsolute
+                    <DragDropElement
                         key={branch.position}
-                        className={getClassName(branch.position)}
-                        position={getPosition(branch.position)}
-                        draggable={true}
-                        onDragStart={this.onDragStart(branch.position)}
-                        onDragEnd={this.onDragEnd}
+                        elementId={branch.position}
                     >
                         <Branch
                             onMount={this.onBranchMount(branch.position)}
@@ -143,9 +90,9 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                             selectionActions={selection.actions}
                             isSelected={isSelected(branch.position)}
                         />
-                    </PositionAbsolute>
+                    </DragDropElement>
                 )}
-            </div>
+            </DragDropCanvas>
         );
     }
 
@@ -162,84 +109,6 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
             branchSizes: {...state.branchSizes, [id]: domSize},
         }));
     });
-
-    private onDragStart = curry((id: string) => (e: React.DragEvent) => {
-        const dragged = e.currentTarget;
-        const rect = dragged.getBoundingClientRect();
-        const dragX = e.clientX - rect.left;
-        const dragY = e.clientY - rect.top;
-
-        this.setState({
-            dragged: { branchId: id, dragPos: { x: dragX, y: dragY }},
-        });
-    });
-
-    private onDragEnd = (e: React.DragEvent) => {
-        // TODO [RM]: is ALWAYS `dragend` fired AFTER `drop`?
-        this.setState({
-            dragged: null,
-        });
-    }
-
-    private onDrop = (e: MouseEvent) => {
-        if (!this.boxRef.current) {
-            throw new Error("this.boxRef.current === null | undefined.");
-        }
-
-        const rect = this.boxRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
-            console.log("CANCEL1");
-            e.preventDefault(); // TODO [RM]: needed?
-            return;
-        }
-
-        const canDrop = (state: AssemblyState) => {
-            const dragged = state.dragged;
-            if (!dragged) {
-                return false;
-            }
-
-            if (x < dragged.dragPos.x || y < dragged.dragPos.y) {
-                console.log("CANCEL1");
-                e.preventDefault(); // TODO [RM]: needed?
-                return false;
-            }
-
-            const draggedSize = state.branchSizes[dragged.branchId];
-            if (!draggedSize) {
-                throw new Error("draggedSize === null | undefined.");
-            }
-
-            if (x > rect.width - draggedSize.width + dragged.dragPos.x
-            || y > rect.height - draggedSize.height + dragged.dragPos.y) {
-                console.log("CANCEL1");
-                e.preventDefault(); // TODO [RM]: needed?
-                return false;
-            }
-
-            return true;
-        };
-
-        this.setState(state => ({
-            dragged: null,
-            branchPositions: state.dragged && canDrop(state)
-                ? {
-                    ...state.branchPositions,
-                    [state.dragged.branchId]: {
-                        x: x - state.dragged.dragPos.x,
-                        y: y - state.dragged.dragPos.y,
-                    },
-                }
-                : {...state.branchPositions},
-        }));
-    }
-
-    private onDrag = (e: Event) => {
-        //
-    }
 
     private calculateBranchPositions = (): BranchPositions => {
         const { branches } = this.props.data;
@@ -263,6 +132,4 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
 
         return result;
     }
-
-    private preventDefaultHandler = (e: Event) => e.preventDefault();
 }

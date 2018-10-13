@@ -5,25 +5,29 @@ import { Size } from "../../types/Size";
 export type OnDropCallback = (position: Point) => void;
 
 export type DragDropContextData = {
+    dragged: { id: string, dragPosition: Point, elementSize: Size } | null;
     onDropCallbacks: { [id: string]: OnDropCallback | undefined }; // TODO [RM]: hide?
 } & DragDropContextFunctions;
 
 export type DragDropContextFunctions = {
     onElementDragStart: (id: string, dragPosition: Point, elementSize: Size) => void;
+    onElementDragEnd: () => void;
     onDrop: (elementId: string, position: Point) => void;
     setOnDropCallback: (id: string, callback: OnDropCallback | null) => void;
 };
 
 export type DragDropContextProviderProps = {
-    onElementDragStart?: (id: string, dragPosition: Point, elementSize: Size) => void;
+    //
 };
 
 export type DragDropContextProviderState = DragDropContextData;
 
 const Context = React.createContext<DragDropContextData>({
+    dragged: null,
     onDropCallbacks: {},
 
     onElementDragStart: () => null,
+    onElementDragEnd: () => null,
     onDrop: () => null,
     setOnDropCallback: () => null,
 });
@@ -34,9 +38,11 @@ extends React.Component<DragDropContextProviderProps, DragDropContextProviderSta
         super(props);
 
         this.state = {
+            dragged: null,
             onDropCallbacks: {},
 
             setOnDropCallback: this.setOnDropCallback,
+            onElementDragEnd: this.onElementDragEnd,
             onElementDragStart: this.onElementDragStart,
             onDrop: this.onDrop,
         };
@@ -61,9 +67,19 @@ extends React.Component<DragDropContextProviderProps, DragDropContextProviderSta
     }
 
     private onElementDragStart = (id: string, dragPosition: Point, elementSize: Size) => {
-        if (this.props.onElementDragStart) {
-            this.props.onElementDragStart(id, dragPosition, elementSize);
-        }
+        this.setState({
+            dragged: {
+                id: id,
+                dragPosition: dragPosition,
+                elementSize: elementSize,
+            },
+        });
+    }
+
+    private onElementDragEnd = () => {
+        this.setState({
+            dragged: null,
+        });
     }
 
     private onDrop = (id: string, position: Point) => {

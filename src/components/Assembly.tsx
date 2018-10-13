@@ -6,7 +6,8 @@ import { curry } from "@radoslaw-medryk/react-curry";
 import { SelectionContext } from "./cpus/SelectionCpu";
 import { AssemblyData } from "../contracts/AssemblyData";
 import { DragDropCanvas } from "./DragDropCanvas";
-import { DragDropElement } from "./DragDropElement";
+import { DragDropElement, DragDropElementDetails } from "./DragDropElement";
+import classNames from "classnames";
 
 const styles = require("./Assembly.scss");
 
@@ -58,12 +59,14 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         const { data, selection } = this.props;
         const { branchPositions } = this.state;
 
-        // const getClassName = (id: string) => classNames({
-        //     [styles.dragged]: dragged && dragged.branchId === id,
-        // });
+        const getClassName = (details: DragDropElementDetails) => classNames(
+            styles.branch,
+            {
+                [styles.dragged]: details.isDragged,
+            }
+        );
 
         const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
-
         const isSelected = (id: string) => !!selection.branch && selection.branch.position === id;
 
         return (
@@ -71,22 +74,24 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                 className={styles.box}
                 onClick={this.onClick}
             >
-                {data.branches.map(branch =>
+                {data.branches.map(branch => (
                     <DragDropElement
                         key={branch.position}
                         elementId={branch.position}
                         position={getPosition(branch.position)}
                         onDropped={this.onElementDropped(branch.position)}
                     >
-                        <Branch
-                            onMount={this.onBranchMount(branch.position)}
-                            className={styles.branch}
-                            data={branch}
-                            selectionActions={selection.actions}
-                            isSelected={isSelected(branch.position)}
-                        />
+                        {details => (
+                            <Branch
+                                onMount={this.onBranchMount(branch.position)}
+                                className={getClassName(details)}
+                                data={branch}
+                                selectionActions={selection.actions}
+                                isSelected={isSelected(branch.position)}
+                            />
+                        )}
                     </DragDropElement>
-                )}
+                ))}
             </DragDropCanvas>
         );
     }

@@ -4,6 +4,9 @@
     border: 2px dotted green;
 
     .dragged {
+        // transition delay applied to ensure that
+        // new style will not affect drag&drop 'ghost' image.
         opacity: 0.5;
+        transition: opacity 0.2s 0.01s;
     }
 }

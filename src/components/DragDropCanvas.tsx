@@ -28,9 +28,7 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
         const { children, ...rest } = this.props;
 
         return (
-            <DragDropContext.Provider
-                onElementDragStart={this.onElementDragStart}
-            >
+            <DragDropContext.Provider>
                 <DragDropContext.Consumer>
                     {context => <>
                         <div
@@ -53,27 +51,16 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
         this.box = box;
     }
 
-    private onElementDragStart = (id: string, dragPosition: Point, elementSize: Size) => {
-        this.setState({
-            dragged: { id: id, dragPosition: dragPosition, elementSize: elementSize },
-        });
-
-        // TODO [RM]: set state.dragged = null when d&d ended (onDragEnd, onDrop, more?)
-        // TODO [RM]: so dragged always reflect if any element is dragged or not.
-    }
-
     private onDrop = curry((context: DragDropContextData) => (e: React.DragEvent<HTMLDivElement>) => {
         if (!this.box) {
             throw new Error("!this.box");
         }
 
-        const { dragged } = this.state;
+        const dragged = context.dragged;
 
         if (!dragged) {
             throw new Error("!dragged");
         }
-
-        // TODO [RM]: check / get dragged element from event?
 
         const dragPosition = dragged.dragPosition;
         const size = dragged.elementSize;

@@ -6,10 +6,19 @@ import { curry } from "@radoslaw-medryk/react-curry";
 import { Point } from "../types/Point";
 import { Size } from "../types/Size";
 
+export type DragDropElementDetails = {
+    isDragged: boolean;
+};
+
+export type DragDropElementChildren =
+    ((details: DragDropElementDetails) => React.ReactNode)
+    | React.ReactNode;
+
 export type DragDropElementProps = {
     elementId: string;
     position: Point;
     onDropped: (position: Point) => void;
+    children: DragDropElementChildren;
 } & ElementProps<HTMLDivElement>;
 
 export const DragDropElement: React.SFC<DragDropElementProps> = ({ ref, ...rest }) => (
@@ -49,14 +58,25 @@ class DragDropInnerElement extends React.Component<DragDropInnerElementProps, Dr
 
     public render() {
         const { context, elementId, onDropped, children, ...rest } = this.props;
+
+        let content: React.ReactNode;
+        if (typeof children === "function") {
+            content = children({
+                isDragged: !!context.dragged && context.dragged.id === elementId,
+            });
+        } else {
+            content = children;
+        }
+
         return (
             <PositionAbsolute
                 {...rest}
                 boxRef={this.setBox}
                 draggable={true}
                 onDragStart={this.onDragStart(context)}
+                onDragEnd={this.onDragEnd(context)}
             >
-                {children}
+                {content}
             </PositionAbsolute>
         );
     }
@@ -83,5 +103,9 @@ class DragDropInnerElement extends React.Component<DragDropInnerElementProps, Dr
         };
 
         context.onElementDragStart(elementId, dragPosition, elementSize);
+    });
+
+    private onDragEnd = curry((context: DragDropContextData) => () => {
+        context.onElementDragEnd();
     });
 }

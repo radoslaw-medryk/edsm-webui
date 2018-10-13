@@ -2,7 +2,7 @@
 
 .box {
     display: inline-block;
-    position: absolute;
+    position: relative;
 
     .header {
         position: relative; // to have proper stacking order with .selected:before

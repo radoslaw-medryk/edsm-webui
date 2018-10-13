@@ -8,47 +8,56 @@ import { Size } from "../types/Size";
 
 export type DragDropElementProps = {
     elementId: string;
+    position: Point;
+    onDropped: (position: Point) => void;
 } & ElementProps<HTMLDivElement>;
 
-export type DragDropElementState = {
+export const DragDropElement: React.SFC<DragDropElementProps> = ({ ref, ...rest }) => (
+    <DragDropContext.Consumer>
+        {context => <DragDropInnerElement context={context} {...rest} />}
+    </DragDropContext.Consumer>
+);
+
+type DragDropInnerElementProps = {
+    context: DragDropContextData;
+} & DragDropElementProps;
+
+type DragDropInnerElementState = {
     //
 };
 
-export class DragDropElement extends React.Component<DragDropElementProps, DragDropElementState> {
+class DragDropInnerElement extends React.Component<DragDropInnerElementProps, DragDropInnerElementState> {
     private box: HTMLDivElement | null;
 
-    constructor(props: DragDropElementProps) {
+    constructor(props: DragDropInnerElementProps) {
         super(props);
 
         this.box = null;
     }
 
+    public componentDidMount() {
+        const { context, elementId, onDropped } = this.props;
+
+        context.setOnDropCallback(elementId, onDropped);
+    }
+
+    public componentWillUnmount() {
+        const { context, elementId } = this.props;
+
+        context.setOnDropCallback(elementId, null);
+    }
+
     public render() {
-        const { elementId, onDragStart, children, ...rest } = this.props;
-
-        const getPosition = (context: DragDropContextData, id: string) => {
-            const element = context.elements[id];
-            if (!element) {
-                throw new Error(`!context.elements[${id}]`);
-            }
-
-            return element.position;
-        };
-
+        const { context, elementId, onDropped, children, ...rest } = this.props;
         return (
-            <DragDropContext.Consumer>
-                {context => <>
-                    <PositionAbsolute
-                        {...rest}
-                        boxRef={this.setBox}
-                        draggable={true}
-                        position={getPosition(context, elementId)}
-                        onDragStart={this.onDragStart(context)}
-                    >
-                        {children}
-                    </PositionAbsolute>
-                </>}
-            </DragDropContext.Consumer>
+            <PositionAbsolute
+                {...rest}
+                boxRef={this.setBox}
+                draggable={true}
+                onDragStart={this.onDragStart(context)}
+            >
+                {children}
+            </PositionAbsolute>
         );
     }
 

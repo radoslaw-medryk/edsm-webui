@@ -2,56 +2,43 @@ import * as React from "react";
 import { Point } from "../../types/Point";
 import { Size } from "../../types/Size";
 
-export type DragDropContextElement = {
-    position: Point;
-};
-
-export type DragDropContextElements = {
-    [key: string]: DragDropContextElement | undefined;
-};
+export type OnDropCallback = (position: Point) => void;
 
 export type DragDropContextData = {
-    elements: DragDropContextElements;
+    onDropCallbacks: { [id: string]: OnDropCallback | undefined }; // TODO [RM]: hide?
 } & DragDropContextFunctions;
 
 export type DragDropContextFunctions = {
     onElementDragStart: (id: string, dragPosition: Point, elementSize: Size) => void;
-    onElementDragEnd: (id: string, clientPosition: Point, elementSize: Size) => void;
-    onDrop: (clientPosition: Point) => void;
-    replaceElements: (elements: DragDropContextElements) => void;
-    updateElements: (elements: DragDropContextElements) => void;
+    onDrop: (elementId: string, position: Point) => void;
+    setOnDropCallback: (id: string, callback: OnDropCallback | null) => void;
 };
 
-export type DragDropContextProps = {
-    initElements?: DragDropContextElements;
+export type DragDropContextProviderProps = {
     onElementDragStart?: (id: string, dragPosition: Point, elementSize: Size) => void;
-    onElementDragEnd?: (context: DragDropContextData, id: string, clientPosition: Point, elementSize: Size) => void;
-    onDrop?: (context: DragDropContextData, clientPosition: Point) => void;
 };
 
-export type DragDropContextState = DragDropContextData;
+export type DragDropContextProviderState = DragDropContextData;
 
 const Context = React.createContext<DragDropContextData>({
-    elements: {},
+    onDropCallbacks: {},
+
     onElementDragStart: () => null,
-    onElementDragEnd: () => null,
     onDrop: () => null,
-    replaceElements: () => null,
-    updateElements: () => null,
+    setOnDropCallback: () => null,
 });
 
-export class DragDropContextProvider extends React.Component<DragDropContextProps, DragDropContextState> {
-    constructor(props: DragDropContextProps) {
+export class DragDropContextProvider
+extends React.Component<DragDropContextProviderProps, DragDropContextProviderState> {
+    constructor(props: DragDropContextProviderProps) {
         super(props);
 
         this.state = {
-            elements: { ...this.props.initElements },
+            onDropCallbacks: {},
 
+            setOnDropCallback: this.setOnDropCallback,
             onElementDragStart: this.onElementDragStart,
-            onElementDragEnd: this.onElementDragEnd,
             onDrop: this.onDrop,
-            replaceElements: this.replaceElements,
-            updateElements: this.updateElements,
         };
     }
 
@@ -63,34 +50,29 @@ export class DragDropContextProvider extends React.Component<DragDropContextProp
         );
     }
 
+    private setOnDropCallback = (id: string, callback: OnDropCallback | null) => {
+        const newCallback = !!callback
+            ? callback
+            : undefined;
+
+        this.setState(state => ({
+            onDropCallbacks: { ...state.onDropCallbacks, [id]: newCallback },
+        }));
+    }
+
     private onElementDragStart = (id: string, dragPosition: Point, elementSize: Size) => {
         if (this.props.onElementDragStart) {
             this.props.onElementDragStart(id, dragPosition, elementSize);
         }
     }
 
-    private onElementDragEnd = (id: string, clientPosition: Point, elementSize: Size) => {
-        if (this.props.onElementDragEnd) {
-            this.props.onElementDragEnd(this.state, id, clientPosition, elementSize);
+    private onDrop = (id: string, position: Point) => {
+        const callback = this.state.onDropCallbacks[id];
+        if (!callback) {
+            return;
         }
-    }
 
-    private onDrop = (clientPosition: Point) => {
-        if (this.props.onDrop) {
-            this.props.onDrop(this.state, clientPosition);
-        }
-    }
-
-    private replaceElements = (elements: DragDropContextElements) => {
-        this.setState({
-            elements: { ...elements },
-        });
-    }
-
-    private updateElements = (elements: DragDropContextElements) => {
-        this.setState(state => ({
-            elements: { ...state.elements, ...elements },
-        }));
+        callback(position);
     }
 }
 

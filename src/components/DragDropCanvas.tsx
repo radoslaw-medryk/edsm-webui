@@ -1,12 +1,12 @@
 import * as React from "react";
 import { ElementProps } from "../types/props";
-import { DragDropContext, DragDropContextData, DragDropContextElements } from "./contexts/DragDropContext";
+import { DragDropContext, DragDropContextData } from "./contexts/DragDropContext";
 import { Point } from "../types/Point";
 import { Size } from "../types/Size";
 import { curry } from "@radoslaw-medryk/react-curry";
 
 export type DragDropCanvasProps = {
-    initElements?: DragDropContextElements;
+    //
 } & ElementProps<HTMLDivElement>;
 
 export type DragDropCanvasState = {
@@ -25,11 +25,10 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
     }
 
     public render() {
-        const { initElements, children, ...rest } = this.props;
+        const { children, ...rest } = this.props;
 
         return (
             <DragDropContext.Provider
-                initElements={initElements}
                 onElementDragStart={this.onElementDragStart}
             >
                 <DragDropContext.Consumer>
@@ -58,6 +57,9 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
         this.setState({
             dragged: { id: id, dragPosition: dragPosition, elementSize: elementSize },
         });
+
+        // TODO [RM]: set state.dragged = null when d&d ended (onDragEnd, onDrop, more?)
+        // TODO [RM]: so dragged always reflect if any element is dragged or not.
     }
 
     private onDrop = curry((context: DragDropContextData) => (e: React.DragEvent<HTMLDivElement>) => {
@@ -66,6 +68,7 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
         }
 
         const { dragged } = this.state;
+
         if (!dragged) {
             throw new Error("!dragged");
         }
@@ -85,11 +88,7 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
             return;
         }
 
-        context.updateElements({
-            [dragged.id]: {
-                position: {x: x, y: y},
-            },
-        });
+        context.onDrop(dragged.id, { x: x, y: y });
     });
 
     private preventDefaultHandler = (e: React.SyntheticEvent) => e.preventDefault();

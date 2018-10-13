@@ -56,32 +56,27 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
 
     public render() {
         const { data, selection } = this.props;
-        // const { branchPositions } = this.state;
+        const { branchPositions } = this.state;
 
         // const getClassName = (id: string) => classNames({
         //     [styles.dragged]: dragged && dragged.branchId === id,
         // });
-        // const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
+
+        const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
 
         const isSelected = (id: string) => !!selection.branch && selection.branch.position === id;
-
-        console.log(data.branches);
-        const initElements = data.branches
-            .reduce((a, c) => {
-                a[c.position] = { position: { x: 0, y: 0 }};
-                return a;
-            }, {});
 
         return (
             <DragDropCanvas
                 className={styles.box}
                 onClick={this.onClick}
-                initElements={initElements}
             >
                 {data.branches.map(branch =>
                     <DragDropElement
                         key={branch.position}
                         elementId={branch.position}
+                        position={getPosition(branch.position)}
+                        onDropped={this.onElementDropped(branch.position)}
                     >
                         <Branch
                             onMount={this.onBranchMount(branch.position)}
@@ -95,6 +90,12 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
             </DragDropCanvas>
         );
     }
+
+    private onElementDropped = curry((id: string) => (position: Point) => {
+        this.setState(state => ({
+            branchPositions: { ...state.branchPositions, [id]: position },
+        }));
+    });
 
     private onClick = (e: React.MouseEvent) => {
         if (e.target !== e.currentTarget) {

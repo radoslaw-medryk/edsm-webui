@@ -1,5 +1,4 @@
 .box {
-    position: relative;
     height: 600px;
     border: 2px dotted green;
 
@@ -7,6 +6,6 @@
         // transition delay applied to ensure that
         // new style will not affect drag&drop 'ghost' image.
         opacity: 0.5;
-        transition: opacity 0.2s 0.01s;
+        transition: opacity 0s 0.01s;
     }
 }

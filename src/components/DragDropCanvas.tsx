@@ -13,7 +13,7 @@ export type DragDropCanvasState = {
     dragged: { id: string, dragPosition: Point, elementSize: Size } | null;
 };
 
-export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDropCanvasState> {
+export class DragDropCanvas extends React.PureComponent<DragDropCanvasProps, DragDropCanvasState> {
     private box: HTMLDivElement | null;
 
     constructor(props: DragDropCanvasProps) {
@@ -25,7 +25,12 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
     }
 
     public render() {
-        const { children, ...rest } = this.props;
+        // tslint:disable-next-line:prefer-const
+        let { children, style, ...rest } = this.props;
+        style = {
+            ...style,
+            position: "relative",
+        };
 
         return (
             <DragDropContext.Provider>
@@ -34,6 +39,7 @@ export class DragDropCanvas extends React.Component<DragDropCanvasProps, DragDro
                         <div
                             {...rest}
                             ref={this.setBox}
+                            style={style}
                             onDragOver={this.preventDefaultHandler}
                             onDragEnter={this.preventDefaultHandler}
                             onDragLeave={this.preventDefaultHandler}

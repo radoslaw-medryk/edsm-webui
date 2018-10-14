@@ -15,11 +15,12 @@ export type DragDropElementChildren =
     | React.ReactNode;
 
 export type DragDropElementProps = {
-    elementId: string;
     position: Point;
     onDropped: (position: Point) => void;
     children: DragDropElementChildren;
 } & ElementProps<HTMLDivElement>;
+
+// TODO [RM]: address rerendering of DragDropInnerElements on any context change
 
 export const DragDropElement: React.SFC<DragDropElementProps> = ({ ref, ...rest }) => (
     <DragDropContext.Consumer>
@@ -35,38 +36,44 @@ type DragDropInnerElementState = {
     //
 };
 
-class DragDropInnerElement extends React.Component<DragDropInnerElementProps, DragDropInnerElementState> {
+class DragDropInnerElement extends React.PureComponent<DragDropInnerElementProps, DragDropInnerElementState> {
+    private static nextElementId = 0;
+
     private box: HTMLDivElement | null;
+    private elementId: string;
 
     constructor(props: DragDropInnerElementProps) {
         super(props);
 
         this.box = null;
+        this.elementId = (DragDropInnerElement.nextElementId++).toString();
     }
 
     public componentDidMount() {
-        const { context, elementId, onDropped } = this.props;
+        const { context, onDropped } = this.props;
 
-        context.setOnDropCallback(elementId, onDropped);
+        context.setOnDropCallback(this.elementId, onDropped);
     }
 
     public componentWillUnmount() {
-        const { context, elementId } = this.props;
+        const { context } = this.props;
 
-        context.setOnDropCallback(elementId, null);
+        context.setOnDropCallback(this.elementId, null);
     }
 
     public render() {
-        const { context, elementId, onDropped, children, ...rest } = this.props;
+        const { context, onDropped, children, ...rest } = this.props;
 
         let content: React.ReactNode;
         if (typeof children === "function") {
             content = children({
-                isDragged: !!context.dragged && context.dragged.id === elementId,
+                isDragged: !!context.dragged && context.dragged.id === this.elementId,
             });
         } else {
             content = children;
         }
+
+        console.log("DragDropInnerElement render()");
 
         return (
             <PositionAbsolute
@@ -86,8 +93,6 @@ class DragDropInnerElement extends React.Component<DragDropInnerElementProps, Dr
     }
 
     private onDragStart = curry((context: DragDropContextData) => (e: React.DragEvent<HTMLDivElement>) => {
-        const { elementId } = this.props;
-
         if (!this.box) {
             throw new Error("!this.box");
         }
@@ -102,7 +107,7 @@ class DragDropInnerElement extends React.Component<DragDropInnerElementProps, Dr
             height: rect.height,
         };
 
-        context.onElementDragStart(elementId, dragPosition, elementSize);
+        context.onElementDragStart(this.elementId, dragPosition, elementSize);
     });
 
     private onDragEnd = curry((context: DragDropContextData) => () => {

@@ -5,6 +5,7 @@ import { ResponseEnvelope } from "../contracts/ResponseEnvelope";
 import { AssemblyData } from "../contracts/AssemblyData";
 import { OperationsChart } from "./tools/OperationsChart/OperationsChart";
 import { SelectionCpu } from "./cpus/SelectionCpu";
+import { ConfigContext } from "./contexts/ConfigContext";
 
 type ResponseData = ResponseEnvelope<AssemblyData>;
 
@@ -23,6 +24,7 @@ type State = {
     code: string | null;
 };
 
+// TODO [RM]: split into smaller components (DecompilerForm, ...)
 export class Decompiler extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -35,15 +37,22 @@ export class Decompiler extends React.Component<Props, State> {
 
     public render() {
         return (
-            <Axios
-                request={axios => axios.post("http://localhost:5000/api/DebugAnalyse", { code: this.state.code })}
-                initCall={false}
-            >
-                {context => <>
-                    {this.renderForm(context)}
-                    {this.renderContent(context)}
-                </>}
-            </Axios>
+            <ConfigContext.Consumer>
+                {config => (
+                    <Axios
+                        request={axios => axios.post(
+                            "/DebugAnalyse",
+                            { code: this.state.code },
+                            { baseURL: config.api.baseUrl })}
+                        initCall={false}
+                    >
+                        {context => <>
+                            {this.renderForm(context)}
+                            {this.renderContent(context)}
+                        </>}
+                    </Axios>
+                )}
+            </ConfigContext.Consumer>
         );
     }
 

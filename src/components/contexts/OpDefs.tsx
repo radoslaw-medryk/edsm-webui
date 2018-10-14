@@ -2,6 +2,7 @@ import * as React from "react";
 import { Axios, AxiosContext, AxiosStatus } from "@radoslaw-medryk/react-axios";
 import { ResponseEnvelope } from "../../contracts/ResponseEnvelope";
 import { OpDefData } from "../../contracts/OpDefData";
+import { ConfigContext } from "./ConfigContext";
 
 type DataType = {
     [opCode: string]: OpDefData,
@@ -18,14 +19,18 @@ const Context = React.createContext<OpDefsContextData>({
 });
 
 export const OpDefsProvider: React.SFC<{}> = props => (
-    <Axios
-        request={axios => axios.get("http://localhost:5000/api/OpDefs")}
-        initCall={true}
-    >
-        {context => <Context.Provider value={context}>
-            {props.children}
-        </Context.Provider>}
-    </Axios>
+    <ConfigContext.Consumer>
+        {config => (
+            <Axios
+                request={axios => axios.get("/OpDefs", { baseURL: config.api.baseUrl })}
+                initCall={true}
+            >
+                {context => <Context.Provider value={context}>
+                    {props.children}
+                </Context.Provider>}
+            </Axios>
+        )}
+    </ConfigContext.Consumer>
 );
 
 export const OpDefs = {

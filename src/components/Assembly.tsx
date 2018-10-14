@@ -77,7 +77,6 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                 {data.branches.map(branch => (
                     <DragDropElement
                         key={branch.position}
-                        elementId={branch.position}
                         position={getPosition(branch.position)}
                         onDropped={this.onElementDropped(branch.position)}
                     >

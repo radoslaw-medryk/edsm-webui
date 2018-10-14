@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Decompiler } from "./Decompiler";
-import { ApiContextProviders } from "./contexts/ApiContextProviders";
+import { ContextProviders } from "./contexts/ContextProviders";
 import { Arrow } from "./Arrow";
 
 const points = [
@@ -11,9 +11,9 @@ const points = [
 ];
 
 export const ReactApp: React.SFC<{}> = () => (
-    <ApiContextProviders>
-        <h1>Hello World!</h1>
+    <ContextProviders>
+        <h1>Ethereum Decompiler</h1>
         <Arrow color="#414141" points={points}/>
         <Decompiler/>
-    </ApiContextProviders>
+    </ContextProviders>
 );

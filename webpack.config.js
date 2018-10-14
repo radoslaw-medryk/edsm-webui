@@ -38,9 +38,7 @@ module.exports = {
     // dependencies, which allows browsers to cache those libraries between builds.
     externals: {
         "react": "React",
-        "react-dom": "ReactDOM",
-        "redux": "Redux",
-        "react-redux": "ReactRedux",
+        "react-dom": "ReactDOM"
     },
 
     plugins: [

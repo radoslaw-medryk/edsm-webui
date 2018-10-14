@@ -20,6 +20,7 @@ export type DragDropElementProps = {
     children: DragDropElementChildren;
 } & ElementProps<HTMLDivElement>;
 
+// TODO [RM]: move DragDrop... into separate project/package
 // TODO [RM]: address rerendering of DragDropInnerElements on any context change
 
 export const DragDropElement: React.SFC<DragDropElementProps> = ({ ref, ...rest }) => (
@@ -73,6 +74,7 @@ class DragDropInnerElement extends React.PureComponent<DragDropInnerElementProps
             content = children;
         }
 
+        // TODO [RM]: temp for debug purposes
         console.log("DragDropInnerElement render()");
 
         return (

@@ -14,7 +14,6 @@ export const Arrow: React.SFC<ArrowProps> = ({ points, color }) => {
     let maxX = 0;
     let maxY = 0;
     for (const point of points) {
-        // TODO [RM]: is using `+=` here a performance problem?
         d = d === null
             ? `M${point.x} ${point.y}`
             : d + ` L${point.x} ${point.y}`;

@@ -33,7 +33,7 @@ export const OpDefsProvider: React.SFC<{}> = props => (
     </ConfigContext.Consumer>
 );
 
-export const OpDefs = {
+export const OpDefsContext = {
     Consumer: Context.Consumer,
     Provider: OpDefsProvider,
 };

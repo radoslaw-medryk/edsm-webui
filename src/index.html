@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" class="" <% if(htmlWebpackPlugin.files.manifest) { %> manifest="<%= htmlWebpackPlugin.files.manifest %>"<% } %>>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>FireDice.EtherVM.Web</title>
+  <title>Ethereum Decompiler</title>
 </head>
 <body>
 <div id="react-app"></div>
@@ -10,12 +10,5 @@
 <!-- CDNs: -->
 <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.0/redux.js"></script>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/5.0.7/react-redux.js"></script>
-
-<% if (htmlWebpackPlugin.options.devServer) { %>
-<script src="<%= htmlWebpackPlugin.options.devServer%>/webpack-dev-server.js"></script>
-<% } %>
-
 </body>
 </html>

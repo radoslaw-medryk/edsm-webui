@@ -30,7 +30,7 @@ export class Decompiler extends React.Component<Props, State> {
         super(props);
 
         this.state = {
-            text: "",
+            text: "60036002016005146018576000ff63deadbeed63badc00fe5b",
             code: null,
         };
     }

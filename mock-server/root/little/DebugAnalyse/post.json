@@ -1,0 +1,99 @@
+{
+    "value": {
+      "branches": [
+        {
+          "position": "0x00",
+          "length": "0x0b",
+          "isAccessible": true,
+          "operations": [
+            {
+              "position": "0x00",
+              "opCode": "0x60",
+              "inCodeInput": "0x03"
+            },
+            {
+              "position": "0x02",
+              "opCode": "0x60",
+              "inCodeInput": "0x02"
+            },
+            {
+              "position": "0x04",
+              "opCode": "0x01",
+              "inCodeInput": null
+            },
+            {
+              "position": "0x05",
+              "opCode": "0x60",
+              "inCodeInput": "0x05"
+            },
+            {
+              "position": "0x07",
+              "opCode": "0x14",
+              "inCodeInput": null
+            },
+            {
+              "position": "0x08",
+              "opCode": "0x60",
+              "inCodeInput": "0x18"
+            },
+            {
+              "position": "0x0a",
+              "opCode": "0x57",
+              "inCodeInput": null
+            }
+          ]
+        },
+        {
+          "position": "0x0b",
+          "length": "0x03",
+          "isAccessible": true,
+          "operations": [
+            {
+              "position": "0x0b",
+              "opCode": "0x60",
+              "inCodeInput": "0x00"
+            },
+            {
+              "position": "0x0d",
+              "opCode": "0xff",
+              "inCodeInput": null
+            }
+          ]
+        },
+        {
+          "position": "0x0e",
+          "length": "0x0a",
+          "isAccessible": false,
+          "operations": [
+            {
+              "position": "0x0e",
+              "opCode": "0x63",
+              "inCodeInput": "0xdeadbeed"
+            },
+            {
+              "position": "0x13",
+              "opCode": "0x63",
+              "inCodeInput": "0xbadc00fe"
+            }
+          ]
+        },
+        {
+          "position": "0x18",
+          "length": "0x02",
+          "isAccessible": true,
+          "operations": [
+            {
+              "position": "0x18",
+              "opCode": "0x5b",
+              "inCodeInput": null
+            },
+            {
+              "position": "0x19",
+              "opCode": "0x00",
+              "inCodeInput": null
+            }
+          ]
+        }
+      ]
+    }
+  }

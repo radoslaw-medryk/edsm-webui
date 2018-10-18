@@ -4,8 +4,9 @@ import { Assembly } from "./Assembly";
 import { ResponseEnvelope } from "../contracts/ResponseEnvelope";
 import { AssemblyData } from "../contracts/AssemblyData";
 import { OperationsChart } from "./tools/OperationsChart/OperationsChart";
-import { SelectionCpu } from "./cpus/SelectionCpu";
+import { SelectionCpu, SelectionContext } from "./cpus/SelectionCpu";
 import { ConfigContext } from "./contexts/ConfigContext";
+import { curry } from "@radoslaw-medryk/react-curry";
 
 type ResponseData = ResponseEnvelope<AssemblyData>;
 
@@ -60,7 +61,7 @@ export class Decompiler extends React.Component<Props, State> {
         const isDisabled = context.status === AxiosStatus.Loading;
 
         return (
-            <form onSubmit={e => this.onSubmitted(e, context)}>
+            <form onSubmit={this.onSubmitted(context)}>
                 <textarea onChange={this.onTextChanged} value={this.state.text}/>
                 <input type="submit" disabled={isDisabled} value="Decompile"/>
             </form>
@@ -91,13 +92,19 @@ export class Decompiler extends React.Component<Props, State> {
     private renderSuccess = (data: ResponseData) => {
         return (
             <SelectionCpu>
-                {selection => <>
-                    <Assembly data={data.value} selection={selection} />
-                    <OperationsChart selection={selection}/>
-                </>}
+                {this.renderSuccessInner(data.value)}
             </SelectionCpu>
         );
     }
+
+    private renderSuccessInner = curry((data: AssemblyData) => (selection: SelectionContext) => {
+        return (
+            <>
+                <Assembly data={data} selection={selection} />
+                <OperationsChart selection={selection}/>
+            </>
+        );
+    });
 
     private renderError = (error: ErrorData) => {
         return <div>Error! `{JSON.stringify(error)}`.</div>;
@@ -109,11 +116,11 @@ export class Decompiler extends React.Component<Props, State> {
         });
     }
 
-    private onSubmitted = (event: React.SyntheticEvent, context: TypedAxiosContext) => {
+    private onSubmitted = curry((context: TypedAxiosContext) => (event: React.SyntheticEvent) => {
         event.preventDefault();
 
         this.setState({
             code: this.state.text,
         }, context.call);
-    }
+    });
 }

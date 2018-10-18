@@ -3,11 +3,12 @@ import { Branch } from "./Branch";
 import { Point } from "../types/Point";
 import { Size } from "../types/Size";
 import { curry } from "@radoslaw-medryk/react-curry";
-import { SelectionContext } from "./cpus/SelectionCpu";
+import { SelectionContext, SelectionActions } from "./cpus/SelectionCpu";
 import { AssemblyData } from "../contracts/AssemblyData";
 import { DragDropCanvas } from "./DragDropCanvas";
 import { DragDropElement, DragDropElementDetails } from "./DragDropElement";
 import classNames from "classnames";
+import { BranchData } from "../contracts/BranchData";
 
 const styles = require("./Assembly.scss");
 
@@ -24,7 +25,7 @@ export type AssemblyState = {
     branchPositions: BranchPositions;
 };
 
-export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
+export class Assembly extends React.PureComponent<AssemblyProps, AssemblyState> {
     constructor(props: AssemblyProps) {
         super(props);
 
@@ -35,6 +36,7 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
     }
 
     public componentDidUpdate(prevProps: AssemblyProps, prevState: AssemblyState) {
+        console.log("Assembly: componentDidUpdate, prevProps:", prevProps, "props:", this.props);
         const prevMountedBranchCount = Object.keys(prevState.branchSizes).length;
         const mountedBranchCount = Object.keys(this.state.branchSizes).length;
         const allBranchCount = this.props.data.branches.length;
@@ -59,15 +61,8 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
         const { data, selection } = this.props;
         const { branchPositions } = this.state;
 
-        const getClassName = (details: DragDropElementDetails) => classNames(
-            styles.branch,
-            {
-                [styles.dragged]: details.isDragged,
-            }
-        );
-
-        const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
         const isSelected = (id: string) => !!selection.branch && selection.branch.position === id;
+        const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
 
         return (
             <DragDropCanvas
@@ -80,20 +75,34 @@ export class Assembly extends React.Component<AssemblyProps, AssemblyState> {
                         position={getPosition(branch.position)}
                         onDropped={this.onElementDropped(branch.position)}
                     >
-                        {details => (
-                            <Branch
-                                onMount={this.onBranchMount(branch.position)}
-                                className={getClassName(details)}
-                                data={branch}
-                                selectionActions={selection.actions}
-                                isSelected={isSelected(branch.position)}
-                            />
-                        )}
+                        {this.renderBranch(branch, isSelected(branch.position), selection.actions)}
                     </DragDropElement>
                 ))}
             </DragDropCanvas>
         );
     }
+
+    private renderBranch = curry(
+        (branch: BranchData, isSelected: boolean, selectionActions: SelectionActions) =>
+        (details: DragDropElementDetails) => {
+            const className = classNames(
+                styles.branch,
+                {
+                    [styles.dragged]: details.isDragged,
+                }
+            );
+
+            return (
+                <Branch
+                    onMount={this.onBranchMount(branch.position)}
+                    className={className}
+                    data={branch}
+                    selectionActions={selectionActions}
+                    isSelected={isSelected}
+                />
+            );
+        }
+    );
 
     private onElementDropped = curry((id: string) => (position: Point) => {
         this.setState(state => ({

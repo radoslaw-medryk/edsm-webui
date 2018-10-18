@@ -3,9 +3,10 @@ import { Point } from "../../types/Point";
 import { Size } from "../../types/Size";
 
 export type OnDropCallback = (position: Point) => void;
+export type Dragged = { id: string, dragPosition: Point, elementSize: Size } | null;
 
 export type DragDropContextData = {
-    dragged: { id: string, dragPosition: Point, elementSize: Size } | null;
+    dragged: Dragged;
     onDropCallbacks: { [id: string]: OnDropCallback | undefined }; // TODO [RM]: hide?
 } & DragDropContextFunctions;
 

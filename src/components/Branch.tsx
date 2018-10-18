@@ -51,9 +51,6 @@ export class Branch extends React.PureComponent<BranchProps, BranchState> {
                 [styles.selected]: isSelected,
             });
 
-        // TODO [RM]: temp for debug purposes
-        console.log(`branch '${data.position}' render().`);
-
         return (
             <div ref={this.boxRef} className={className}>
                 <div

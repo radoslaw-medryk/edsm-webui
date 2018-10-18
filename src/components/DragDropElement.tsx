@@ -1,7 +1,7 @@
 import * as React from "react";
 import { PositionAbsolute } from "./PositionAbsolute";
 import { ElementProps } from "../types/props";
-import { DragDropContext, DragDropContextData } from "./contexts/DragDropContext";
+import { DragDropContext, OnDropCallback, DragDropContextData } from "./contexts/DragDropContext";
 import { curry } from "@radoslaw-medryk/react-curry";
 import { Point } from "../types/Point";
 import { Size } from "../types/Size";
@@ -21,69 +21,121 @@ export type DragDropElementProps = {
 } & ElementProps<HTMLDivElement>;
 
 // TODO [RM]: move DragDrop... into separate project/package
-// TODO [RM]: address rerendering of DragDropInnerElements on any context change
 
-export const DragDropElement: React.SFC<DragDropElementProps> = ({ ref, ...rest }) => (
-    <DragDropContext.Consumer>
-        {context => <DragDropInnerElement context={context} {...rest} />}
-    </DragDropContext.Consumer>
-);
+export class DragDropElement extends React.PureComponent<DragDropElementProps, {}> {
+    private static nextElementId = 0;
+
+    private elementId: string;
+
+    constructor(props: DragDropElementProps) {
+        super(props);
+
+        this.elementId = (DragDropElement.nextElementId++).toString();
+    }
+
+    public render() {
+        // TODO [RM]: inline arrow function here due to problem with using curry
+        // TODO [RM]: When there is need to pass a lot of properties down
+        // TODO [RM]: (In this case whole props should go down).
+        // TODO [RM]: Investigate.
+
+        // TODO [RM]: Possible solution is ContextWithTopics - Extended React Context API,
+        // TODO [RM]: that allow more dynamic consumer subscribtion based on topics.
+        // TODO [RM]: Something like `observedBits` but more extended and dynamic.
+        // TODO [RM]: Invesitgate.
+
+        return (
+            <DragDropContext.Consumer>
+                {this.renderInner}
+            </DragDropContext.Consumer>
+        );
+    }
+
+    private renderInner = (context: DragDropContextData) => {
+        const { ref, children, ...rest } = this.props;
+
+        console.log(`DragDropContext.Consumer (for id = ${this.elementId}) children();`);
+
+        return (
+            <DragDropInnerElement
+                {...rest}
+                elementId={this.elementId}
+                isDragged={!!context.dragged && context.dragged.id === this.elementId}
+                setOnDropCallback={context.setOnDropCallback}
+                onElementDragStart={context.onElementDragStart}
+                onElementDragEnd={context.onElementDragEnd}
+            >
+                {children}
+            </DragDropInnerElement>
+        );
+    }
+}
+
+type SetOnDropCallbackFunc = (id: string, callback: OnDropCallback | null) => void;
+type ElementDragStartFunc = (id: string, dragPosition: Point, elementSize: Size) => void;
+type ElementDragEndFunc = () => void;
 
 type DragDropInnerElementProps = {
-    context: DragDropContextData;
+    elementId: string;
+    isDragged: boolean;
+    setOnDropCallback: SetOnDropCallbackFunc;
+    onElementDragStart: ElementDragStartFunc;
+    onElementDragEnd: ElementDragEndFunc;
 } & DragDropElementProps;
 
 type DragDropInnerElementState = {
     //
 };
 
+// tslint:disable-next-line:max-classes-per-file
 class DragDropInnerElement extends React.PureComponent<DragDropInnerElementProps, DragDropInnerElementState> {
-    private static nextElementId = 0;
-
     private box: HTMLDivElement | null;
-    private elementId: string;
 
     constructor(props: DragDropInnerElementProps) {
         super(props);
 
         this.box = null;
-        this.elementId = (DragDropInnerElement.nextElementId++).toString();
     }
 
     public componentDidMount() {
-        const { context, onDropped } = this.props;
+        const { elementId, setOnDropCallback, onDropped } = this.props;
 
-        context.setOnDropCallback(this.elementId, onDropped);
+        setOnDropCallback(elementId, onDropped);
     }
 
     public componentWillUnmount() {
-        const { context } = this.props;
+        const { elementId, setOnDropCallback } = this.props;
 
-        context.setOnDropCallback(this.elementId, null);
+        setOnDropCallback(elementId, null);
     }
 
     public render() {
-        const { context, onDropped, children, ...rest } = this.props;
+        const {
+            elementId,
+            isDragged,
+            onElementDragStart,
+            onElementDragEnd,
+            setOnDropCallback,
+            onDropped,
+            children,
+            ...rest } = this.props; // TODO [RM]: ugly; temp to satisfy linter
 
         let content: React.ReactNode;
         if (typeof children === "function") {
             content = children({
-                isDragged: !!context.dragged && context.dragged.id === this.elementId,
+                isDragged: isDragged,
             });
         } else {
             content = children;
         }
-
-        // TODO [RM]: temp for debug purposes
-        console.log("DragDropInnerElement render()");
 
         return (
             <PositionAbsolute
                 {...rest}
                 boxRef={this.setBox}
                 draggable={true}
-                onDragStart={this.onDragStart(context)}
-                onDragEnd={this.onDragEnd(context)}
+                onDragStart={this.onDragStart(onElementDragStart)}
+                onDragEnd={this.onDragEnd(onElementDragEnd)}
             >
                 {content}
             </PositionAbsolute>
@@ -94,7 +146,9 @@ class DragDropInnerElement extends React.PureComponent<DragDropInnerElementProps
         this.box = box;
     }
 
-    private onDragStart = curry((context: DragDropContextData) => (e: React.DragEvent<HTMLDivElement>) => {
+    private onDragStart = curry((onElementDragStart: ElementDragStartFunc) => (e: React.DragEvent<HTMLDivElement>) => {
+        const { elementId } = this.props;
+
         if (!this.box) {
             throw new Error("!this.box");
         }
@@ -109,10 +163,10 @@ class DragDropInnerElement extends React.PureComponent<DragDropInnerElementProps
             height: rect.height,
         };
 
-        context.onElementDragStart(this.elementId, dragPosition, elementSize);
+        onElementDragStart(elementId, dragPosition, elementSize);
     });
 
-    private onDragEnd = curry((context: DragDropContextData) => () => {
-        context.onElementDragEnd();
+    private onDragEnd = curry((onElementDragEnd: ElementDragEndFunc) => () => {
+        onElementDragEnd();
     });
 }

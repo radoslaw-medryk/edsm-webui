@@ -22,7 +22,7 @@ export type SelectionCpuProps = {
 
 export type SelectionCpuState = SelectionContext;
 
-export class SelectionCpu extends React.Component<SelectionCpuProps, SelectionCpuState> {
+export class SelectionCpu extends React.PureComponent<SelectionCpuProps, SelectionCpuState> {
     constructor(props: SelectionCpuProps) {
         super(props);
 
@@ -38,10 +38,13 @@ export class SelectionCpu extends React.Component<SelectionCpuProps, SelectionCp
     }
 
     public render() {
+        console.log("SelectionCpu render();");
         return this.props.children(this.state);
     }
 
     private setSelection = (value: SelectionData) => {
+        console.log("setSelection branch: ", value.branch, "operation: ", value.operation);
+
         this.setState({ ...value });
     }
 

@@ -14,7 +14,7 @@ export type OperationBoxState = {
     //
 };
 
-export class OperationBox extends React.Component<OperationBoxProps, OperationBoxState> {
+export class OperationBox extends React.PureComponent<OperationBoxProps, OperationBoxState> {
     constructor(props: OperationBoxProps) {
         super(props);
     }

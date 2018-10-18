@@ -23,7 +23,7 @@
         "member-ordering": false,
         "no-unused-expression": false,
         "interface-over-type-literal": false,
-        "jsx-no-lambda": false,
+        "jsx-no-lambda": true,
         "jsx-no-multiline-js": false,
         "no-var-requires": false,
         "no-console": false

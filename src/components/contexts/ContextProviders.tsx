@@ -5,7 +5,8 @@ import { ConfigContext, ConfigContextData } from "./ConfigContext";
 const config: ConfigContextData = {
     api: {
         // baseUrl: "http://localhost:5000/api",
-        baseUrl: "https://5bc37df83e7a8b00138053c9.mockapi.io/api",
+        // baseUrl: "http://localhost:8888/huge",
+        baseUrl: "http://localhost:8888/little",
     },
 };
 

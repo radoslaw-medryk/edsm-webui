@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 //const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
+    mode: "development",
     entry: "./src/index.tsx",
     output: {
         filename: "bundle.js",
@@ -20,10 +21,11 @@ module.exports = {
             { test: /\.tsx?$/, loader: "babel-loader" },
             { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
             { test: /.s?css$/, use: [
-                MiniCssExtractPlugin.loader,
+                // MiniCssExtractPlugin.loader,
+                "style-loader", // TODO [RM]: dev purposes only
                 { loader: "css-loader", options: {
                     modules: true,
-                    localIdentName: "[name]-[hash:6]",
+                    localIdentName: "[name]-[local]-[hash:6]",
                     importLoaders: 1,
                     camelCase: true
                 }},

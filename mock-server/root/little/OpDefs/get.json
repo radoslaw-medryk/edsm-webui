@@ -1,0 +1,68 @@
+{
+    "value": {
+      "0x00": {
+        "opCode": "0x00",
+        "name": "STOP",
+        "inCodeInputLength": 0,
+        "stackInputsCount": 0,
+        "stackOutputsCount": 0,
+        "isValid": true
+      },
+      "0x01": {
+        "opCode": "0x01",
+        "name": "ADD",
+        "inCodeInputLength": 0,
+        "stackInputsCount": 2,
+        "stackOutputsCount": 1,
+        "isValid": true
+      },
+      "0x14": {
+        "opCode": "0x14",
+        "name": "EQ",
+        "inCodeInputLength": 0,
+        "stackInputsCount": 2,
+        "stackOutputsCount": 1,
+        "isValid": true
+      },
+      "0x57": {
+        "opCode": "0x57",
+        "name": "JUMPI",
+        "inCodeInputLength": 0,
+        "stackInputsCount": 2,
+        "stackOutputsCount": 0,
+        "isValid": true
+      },
+      "0x5b": {
+        "opCode": "0x5b",
+        "name": "JUMPDEST",
+        "inCodeInputLength": 0,
+        "stackInputsCount": 0,
+        "stackOutputsCount": 0,
+        "isValid": true
+      },
+      "0x60": {
+        "opCode": "0x60",
+        "name": "PUSH1",
+        "inCodeInputLength": 1,
+        "stackInputsCount": 0,
+        "stackOutputsCount": 1,
+        "isValid": true
+      },
+      "0x63": {
+        "opCode": "0x63",
+        "name": "PUSH4",
+        "inCodeInputLength": 4,
+        "stackInputsCount": 0,
+        "stackOutputsCount": 1,
+        "isValid": true
+      },
+      "0xff": {
+        "opCode": "0xff",
+        "name": "SELFDESTRUCT",
+        "inCodeInputLength": 0,
+        "stackInputsCount": 1,
+        "stackOutputsCount": 0,
+        "isValid": true
+      }
+    }
+  }

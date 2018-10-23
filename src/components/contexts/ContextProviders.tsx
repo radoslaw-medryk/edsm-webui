@@ -1,6 +1,7 @@
 import * as React from "react";
 import { OpDefsContext } from "./OpDefsContext";
 import { ConfigContext, ConfigContextData } from "./ConfigContext";
+import { SelectionContext } from "./SelectionContext";
 
 const config: ConfigContextData = {
     api: {
@@ -13,7 +14,9 @@ const config: ConfigContextData = {
 export const ContextProviders: React.SFC<{}> = props => (
     <ConfigContext.Provider value={config}>
         <OpDefsContext.Provider>
-            {props.children}
+            <SelectionContext.Provider>
+                {props.children}
+            </SelectionContext.Provider>
         </OpDefsContext.Provider>
     </ConfigContext.Provider>
 );

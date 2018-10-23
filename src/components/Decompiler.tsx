@@ -4,7 +4,6 @@ import { Assembly } from "./Assembly";
 import { ResponseEnvelope } from "../contracts/ResponseEnvelope";
 import { AssemblyData } from "../contracts/AssemblyData";
 import { OperationsChart } from "./tools/OperationsChart/OperationsChart";
-import { SelectionCpu, SelectionContext } from "./cpus/SelectionCpu";
 import { ConfigContext } from "./contexts/ConfigContext";
 import { curry } from "@radoslaw-medryk/react-curry";
 
@@ -31,7 +30,7 @@ export class Decompiler extends React.Component<Props, State> {
         super(props);
 
         this.state = {
-            text: "60036002016005146018576000ff63deadbeed63badc00fe5b",
+            text: "60036002016005146018576000ff63deadbeef63badc0ffe5b",
             code: null,
         };
     }
@@ -41,6 +40,8 @@ export class Decompiler extends React.Component<Props, State> {
             <ConfigContext.Consumer>
                 {config => (
                     <Axios
+                        // TODO [RM]: pass single func instance to Axios? Change axios?
+                        // tslint:disable-next-line:jsx-no-lambda
                         request={axios => axios.post(
                             "/DebugAnalyse",
                             { code: this.state.code },
@@ -91,20 +92,12 @@ export class Decompiler extends React.Component<Props, State> {
 
     private renderSuccess = (data: ResponseData) => {
         return (
-            <SelectionCpu>
-                {this.renderSuccessInner(data.value)}
-            </SelectionCpu>
-        );
-    }
-
-    private renderSuccessInner = curry((data: AssemblyData) => (selection: SelectionContext) => {
-        return (
             <>
-                <Assembly data={data} selection={selection} />
-                <OperationsChart selection={selection}/>
+                <Assembly data={data.value}/>
+                <OperationsChart/>
             </>
         );
-    });
+    }
 
     private renderError = (error: ErrorData) => {
         return <div>Error! `{JSON.stringify(error)}`.</div>;

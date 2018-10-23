@@ -22,6 +22,7 @@ export const OpDefsProvider: React.SFC<{}> = props => (
     <ConfigContext.Consumer>
         {config => (
             <Axios
+                // tslint:disable-next-line:jsx-no-lambda // TODO [RM]: fix
                 request={axios => axios.get("/OpDefs", { baseURL: config.api.baseUrl })}
                 initCall={true}
             >

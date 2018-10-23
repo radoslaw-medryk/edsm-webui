@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Point } from "../types/Point";
+import { Point } from "@radoslaw-medryk/react-basics";
 
 export type ArrowProps = {
     color: string;

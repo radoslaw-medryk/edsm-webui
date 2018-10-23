@@ -1,11 +1,11 @@
 import * as React from "react";
 import { OperationBox } from "./OperationBox";
-import { SelectionData } from "../../cpus/SelectionCpu";
+import { SelectionContextData, SelectionContext } from "../../contexts/SelectionContext";
 
 const styles = require("./OperationsChart.scss");
 
 export type OperationsChartProps = {
-    selection: SelectionData;
+    //
 };
 
 export type OperationsChartState = {
@@ -18,8 +18,14 @@ export class OperationsChart extends React.Component<OperationsChartProps, Opera
     }
 
     public render() {
-        const { selection } = this.props;
+        return (
+            <SelectionContext.Consumer observedTopics={"all"} >
+                {this.renderContent}
+            </SelectionContext.Consumer>
+        );
+    }
 
+    private renderContent = (selection: SelectionContextData) => {
         if (!selection.branch) {
             return null;
         }

@@ -18,6 +18,12 @@ module.exports = {
 
     module: {
         rules: [
+            { enforce: "pre", test: /\.tsx?$/, use: {
+                loader: "tslint-loader",
+                options: {
+                    emitErrors: true
+                }
+            } },
             { test: /\.tsx?$/, loader: "babel-loader" },
             { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
             { test: /.s?css$/, use: [

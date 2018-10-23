@@ -1,14 +1,12 @@
 import * as React from "react";
 import { Branch } from "./Branch";
-import { Point } from "../types/Point";
-import { Size } from "../types/Size";
+import { Point, Size } from "@radoslaw-medryk/react-basics";
 import { curry } from "@radoslaw-medryk/react-curry";
-import { SelectionContext, SelectionActions } from "./cpus/SelectionCpu";
 import { AssemblyData } from "../contracts/AssemblyData";
-import { DragDropCanvas } from "./DragDropCanvas";
-import { DragDropElement, DragDropElementDetails } from "./DragDropElement";
+import { DragDropCanvas, DragDropElement, DragDropElementDetails } from "@radoslaw-medryk/react-dragdrop";
 import classNames from "classnames";
 import { BranchData } from "../contracts/BranchData";
+import { SelectionContextData, SelectionContext, ClearSelectionFunc } from "./contexts/SelectionContext";
 
 const styles = require("./Assembly.scss");
 
@@ -17,7 +15,6 @@ type BranchPositions = { [key: string]: Point | undefined };
 
 export type AssemblyProps = {
     data: AssemblyData;
-    selection: SelectionContext;
 };
 
 export type AssemblyState = {
@@ -26,8 +23,12 @@ export type AssemblyState = {
 };
 
 export class Assembly extends React.PureComponent<AssemblyProps, AssemblyState> {
+    private startPosition: Point;
+
     constructor(props: AssemblyProps) {
         super(props);
+
+        this.startPosition = { x: 0, y: 0 };
 
         this.state = {
             branchSizes: {},
@@ -36,7 +37,6 @@ export class Assembly extends React.PureComponent<AssemblyProps, AssemblyState> 
     }
 
     public componentDidUpdate(prevProps: AssemblyProps, prevState: AssemblyState) {
-        console.log("Assembly: componentDidUpdate, prevProps:", prevProps, "props:", this.props);
         const prevMountedBranchCount = Object.keys(prevState.branchSizes).length;
         const mountedBranchCount = Object.keys(this.state.branchSizes).length;
         const allBranchCount = this.props.data.branches.length;
@@ -58,34 +58,69 @@ export class Assembly extends React.PureComponent<AssemblyProps, AssemblyState> 
      }
 
     public render() {
-        const { data, selection } = this.props;
+        const { data } = this.props;
         const { branchPositions } = this.state;
 
-        const isSelected = (id: string) => !!selection.branch && selection.branch.position === id;
-        const getPosition = (id: string) => branchPositions[id] || { x: 0, y: 0 };
+        // TODO [RM]: idea for State Management library:
+        // TODO [RM]: Context base library that have custom consumers options
+        // TODO [RM]: for subscribing only to Actions (functions changing state), State (data) or both.
 
+        // TODO [RM]: Something like:
+        /*
+        <Consumer topics={["number"]}>
+            {(state, actions) => {
+                <div>State: {state.number}</div>
+                <button onClick={() => actions.changeState(42)}></button>
+            }}
+        </Consumer>
+
+        // or:
+
+        <Consumer>
+            {(actions) => {
+                <button onClick={() => actions.changeState(42)}></button>
+            }}
+        </Consumer>
+        */
+
+        // observedTopics="none", as we are only interested in clearSelection,
+        // which doesn't ever change.
         return (
-            <DragDropCanvas
-                className={styles.box}
-                onClick={this.onClick}
-            >
-                {data.branches.map(branch => (
-                    <DragDropElement
-                        key={branch.position}
-                        position={getPosition(branch.position)}
-                        onDropped={this.onElementDropped(branch.position)}
-                    >
-                        {this.renderBranch(branch, isSelected(branch.position), selection.actions)}
-                    </DragDropElement>
-                ))}
-            </DragDropCanvas>
+            <SelectionContext.Consumer observedTopics="none">
+                {this.renderContent(data, branchPositions)}
+            </SelectionContext.Consumer>
         );
     }
 
+    private renderContent = curry(
+        (data: AssemblyData, branchPositions: BranchPositions) =>
+        (selection: SelectionContextData) => {
+            const getPosition = (id: string) => branchPositions[id] || this.startPosition;
+            const { clearSelection } = selection.actions;
+
+            return (
+                <DragDropCanvas
+                    className={styles.box}
+                    onClick={this.onClick(clearSelection)}
+                >
+                    {data.branches.map(branch => (
+                        <DragDropElement
+                            key={branch.position}
+                            position={getPosition(branch.position)}
+                            onDropped={this.onElementDropped(branch.position)}
+                        >
+                            {this.renderBranch(branch)}
+                        </DragDropElement>
+                    ))}
+                </DragDropCanvas>
+            );
+        }
+    );
+
     private renderBranch = curry(
-        (branch: BranchData, isSelected: boolean, selectionActions: SelectionActions) =>
+        (branch: BranchData) =>
         (details: DragDropElementDetails) => {
-            const className = classNames(
+            const branchClassName = classNames(
                 styles.branch,
                 {
                     [styles.dragged]: details.isDragged,
@@ -95,10 +130,8 @@ export class Assembly extends React.PureComponent<AssemblyProps, AssemblyState> 
             return (
                 <Branch
                     onMount={this.onBranchMount(branch.position)}
-                    className={className}
+                    className={branchClassName}
                     data={branch}
-                    selectionActions={selectionActions}
-                    isSelected={isSelected}
                 />
             );
         }
@@ -110,12 +143,12 @@ export class Assembly extends React.PureComponent<AssemblyProps, AssemblyState> 
         }));
     });
 
-    private onClick = (e: React.MouseEvent) => {
+    private onClick = (clearSelection: ClearSelectionFunc) => (e: React.MouseEvent) => {
         if (e.target !== e.currentTarget) {
             return;
         }
 
-        this.props.selection.actions.clearSelection();
+        clearSelection();
     }
 
     private onBranchMount = curry((id: string) => (domSize: Size) => {

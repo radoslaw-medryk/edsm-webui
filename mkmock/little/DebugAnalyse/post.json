@@ -68,12 +68,12 @@
             {
               "position": "0x0e",
               "opCode": "0x63",
-              "inCodeInput": "0xdeadbeed"
+              "inCodeInput": "0xdeadbeef"
             },
             {
               "position": "0x13",
               "opCode": "0x63",
-              "inCodeInput": "0xbadc00fe"
+              "inCodeInput": "0xbadc0ffe"
             }
           ]
         },

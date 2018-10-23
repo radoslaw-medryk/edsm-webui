@@ -23,7 +23,7 @@ export class OperationBox extends React.PureComponent<OperationBoxProps, Operati
         const { data, isSelected } = this.props;
         const { opCode } = data;
 
-        const className = classNames(
+        const boxClassName = classNames(
             styles.box,
             {
                 [styles.selected]: isSelected,
@@ -31,7 +31,7 @@ export class OperationBox extends React.PureComponent<OperationBoxProps, Operati
         );
 
         return (
-            <div className={className}>
+            <div className={boxClassName}>
                 <OpCodeName opCode={opCode}/>
             </div>
         );

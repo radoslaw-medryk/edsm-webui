@@ -9,7 +9,7 @@ Currently project is set to use mock API with predefined data. Real API not yet 
 
 1) To run mock-api server on `localhost:8888`:
 ```
-npm run mkmock
+npm run mock
 ```
 
 2) To run application on `localhost:8080`:
